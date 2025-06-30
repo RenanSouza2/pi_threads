@@ -16,9 +16,7 @@
 
 
 
-typedef handler_p (*pthread_f)(handler_p);
-
-pthread_t pthread_create_return(pthread_f fn, handler_p args)
+pthread_t pthread_create_treat(pthread_f fn, handler_p args)
 {
     pthread_t thread_id;
     TREAT(pthread_create(&thread_id, NULL, fn, args));
@@ -33,12 +31,12 @@ void pthread_lock(pthread_t thread_id, uint64_t cpu)
     TREAT(pthread_setaffinity_np(thread_id, sizeof(cpu_set_t), &cpuset));
 }
 
-void pthread_wait(pthread_t thread_id)
+void pthread_join_treat(pthread_t thread_id)
 {
     TREAT(pthread_join(thread_id, NULL));
 }
 
-uint64_t sem_getvalue_return(sem_t *sem)
+uint64_t sem_getvalue_treat(sem_t *sem)
 {
     int value;
     TREAT(sem_getvalue(sem, &value));

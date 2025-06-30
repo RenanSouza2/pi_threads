@@ -4,6 +4,7 @@
 #include <semaphore.h>
 
 #include "../../mods/macros/struct.h"
+#include "../../mods/macros/U64.h"
 
 typedef void (*free_f)(handler_p, uint64_t);
 

@@ -1,5 +1,5 @@
-#ifndef __PEAR_DEBUG_H__
-#define __PEAR_DEBUG_H__
+#ifndef __JUNC_DEBUG_H__
+#define __JUNC_DEBUG_H__
 
 #include "header.h"
 
