@@ -1,5 +1,5 @@
-#ifndef __PI_H__
-#define __PI_H__
+#ifndef __PI_FIRST_FIRST_H__
+#define __PI_FIRST_FIRST_H__
 
 #include "../../mods/macros/U64.h"
 

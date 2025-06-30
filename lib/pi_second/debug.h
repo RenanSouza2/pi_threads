@@ -1,5 +1,5 @@
-#ifndef __PI_FIRST_DEBUG_H__
-#define __PI_FIRST_DEBUG_H__
+#ifndef __PI_SECOND_DEBUG_H__
+#define __PI_SECOND_DEBUG_H__
 
 #include "header.h"
 #include "struct.h"
