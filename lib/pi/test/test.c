@@ -7,7 +7,7 @@
 
 
 
-void test_example_hello(bool show)
+void test_pi_hello(bool show)
 {
     TEST_FN_OPEN
 
@@ -21,13 +21,13 @@ void test_example_hello(bool show)
 
 
 
-void test_example()
+void test_pi()
 {
     TEST_LIB
 
     bool show = true;
 
-    test_example_hello(show);
+    test_pi_hello(show);
 
     TEST_ASSERT_MEM_EMPTY
 }
@@ -37,7 +37,7 @@ void test_example()
 int main()
 {
     setbuf(stdout, NULL);
-    test_example();
+    test_pi();
     printf("\n\n\tTest successful\n\n");
     return 0;
 }
