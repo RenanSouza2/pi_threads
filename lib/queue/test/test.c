@@ -25,7 +25,7 @@ void test_queue()
 {
     TEST_LIB
 
-    bool show = true;
+    bool show = false;
 
     test_queue_hello(show);
 

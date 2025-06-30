@@ -1,27 +1,30 @@
 DIRS := $(wildcard */.)
 
 CLU_FILE = ../mods/clu/bin/bin.o
-LIB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))lib.o)
-DGB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))debug.o) $(CLU_FILE)
+NUM_FILE = ../mods/number/lib/lib.o
+LIB_FILES = $(foreach DIR,$(DIRS) $(NUM_FILE),$(dir $(DIR))lib.o)
+DGB_FILES = $(foreach DIR,$(DIRS) $(NUM_FILE),$(dir $(DIR))debug.o)
 
 DIR = lib$(word 2,$(subst lib, ,$(CURDIR)))
 
 build: lib.o
 
-
+del:
+	echo $(LIB_FILES)
+	echo $(DGB_FILES)
 
 lib.o: $(LIB_FILES)
 	echo " linking object $(DIR)"
 	ld -r -o $@ $^
 
-debug.o: $(DGB_FILES)
+debug.o: $(DGB_FILES) $(CLU_FILE)
 	echo " linking debug $(DIR)"
 	ld -r -o $@ $^
 
 
 
-.PHONY: $(LIB_FILES)
-$(LIB_FILES):
+.PHONY: $(LIB_FILES) $(CLU_FILE)
+$(LIB_FILES) $(CLU_FILE):
 	$(MAKE) --directory=$(dir $@)
 
 .PHONY: $(DGB_FILES)
@@ -36,7 +39,7 @@ clean c:
 _clean:
 	echo "cleaning $(DIR)"
 	rm -rf *.o
-	for FILE in $(DGB_FILES) ; do	\
+	for FILE in $(DGB_FILES) $(CLU_FILE); do	\
 		$(MAKE) _clean --directory=$$(dirname $$FILE) || exit $$?;	\
 	done
 

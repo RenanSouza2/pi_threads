@@ -1,6 +1,10 @@
 #ifndef __PEAR_H__
 #define __PEAR_H__
 
+#include <pthread.h>
+#include <semaphore.h>
+#include <stdbool.h>
+
 #include "../../mods/macros/U64.h"
 
 #include "struct.h"

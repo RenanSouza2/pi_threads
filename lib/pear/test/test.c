@@ -25,7 +25,7 @@ void test_pear()
 {
     TEST_LIB
 
-    bool show = true;
+    bool show = false;
 
     test_pear_hello(show);
 

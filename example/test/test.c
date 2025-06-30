@@ -25,7 +25,7 @@ void test_example()
 {
     TEST_LIB
 
-    bool show = true;
+    bool show = false;
 
     test_example_hello(show);
 

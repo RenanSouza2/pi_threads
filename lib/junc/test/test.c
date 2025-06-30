@@ -25,7 +25,7 @@ void test_junc()
 {
     TEST_LIB
 
-    bool show = true;
+    bool show = false;
 
     test_junc_hello(show);
 

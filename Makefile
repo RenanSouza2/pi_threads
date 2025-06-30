@@ -2,13 +2,13 @@ SRC = src
 LIB = lib
 
 build b:
-	$(MAKE) build --directory=$(SRC)
+	$(MAKE) build --directory=$(SRC) -s
 
 dbg d:
-	$(MAKE) dbg --directory=$(SRC)
+	$(MAKE) dbg --directory=$(SRC) -s
 
 clean c:
-	$(MAKE) clean --directory=$(SRC)
+	$(MAKE) clean --directory=$(SRC) -s
 
 test t:
-	$(MAKE) test --directory=$(LIB)
+	$(MAKE) test --directory=$(LIB) -s

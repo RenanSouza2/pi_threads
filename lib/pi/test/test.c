@@ -25,7 +25,7 @@ void test_pi()
 {
     TEST_LIB
 
-    bool show = true;
+    bool show = false;
 
     test_pi_hello(show);
 
