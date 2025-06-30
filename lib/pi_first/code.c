@@ -174,7 +174,7 @@ void pi_queue_res_free(handler_p h, uint64_t res_size)
         fix_num_free(((fix_num_p)h)[i]);
 }
 
-void pi_threads(uint64_t size, uint64_t thread_0)
+void pi_threads_first(uint64_t size, uint64_t thread_0)
 {
     uint64_t layers = 3;
     uint64_t queue_size = 5;
