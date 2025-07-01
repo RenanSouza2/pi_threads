@@ -3,18 +3,15 @@
 #include "../mods/clu/header.h"
 
 #include "../lib/pi_first/header.h"
-#include "../lib/pi_second/header.h"
 
 // int main(int argc, char** argv)
 int main()
 {
     setbuf(stdout, NULL);
 
-    // pi_threads_first(2, 100);
-
-    uint64_t size = 10000;
-    uint64_t a = size * 2;
-    base(size, a);
+    uint64_t size = 100000;
+    uint64_t i_0 = size * 4 / 15;
+    a_n(size, 3, i_0);
 
     printf("\n");
     return 0;

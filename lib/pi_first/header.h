@@ -2,7 +2,8 @@
 #define __PI_FIRST_FIRST_H__
 
 #include "../../mods/macros/U64.h"
+#include "../../mods/number/lib/float/header.h"
 
-void pi_threads_first(uint64_t size, uint64_t layers);
+float_num_t a_n(uint64_t size, uint64_t layers, uint64_t i_0);
 
 #endif
