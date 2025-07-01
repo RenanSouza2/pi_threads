@@ -4,6 +4,6 @@
 #include "../../mods/macros/U64.h"
 #include "../../mods/number/lib/float/header.h"
 
-float_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count, uint64_t batch_size);
+fix_num_t pi_threads(uint64_t size, uint64_t max);
 
 #endif
