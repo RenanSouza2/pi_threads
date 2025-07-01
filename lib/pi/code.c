@@ -202,9 +202,9 @@ fix_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count)
     uint64_t tam = 1000;
     for(uint64_t i=1; i<i_0; i++)
     {
-        uint64_t index = 1 + layer_count * i;
+        // if(i%tam == 0) printf("\ni: %lu / %lu", i / tam, i_0 / tam);
 
-        if(i%tam == 0)printf("\ni: %lu / %lu", i / tam, i_0 / tam);
+        uint64_t index = 1 + layer_count * i;
 
         sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
         sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
@@ -230,6 +230,7 @@ group_p group_launch(
 )
 {
     uint64_t queue_size = 5;
+    pthread_lock(pthread_self(), 8);
 
     group_p g = group_create(layer_count);
     g->junc_b_c = junc_init(layer_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
@@ -333,12 +334,22 @@ fix_num_t pi_0(uint64_t size, uint64_t layer_count)
     return fix_pi;
 }
 
-fix_num_t pi_threads(uint64_t size, uint64_t max)
+fix_num_t pi_threads(uint64_t size)
 {
     uint64_t layer_count = 3;
 
-    group_p g = group_launch(size, layer_count, 1, max, 0);
+    uint64_t max = 11 * size;
+    uint64_t mid = max / 2;
+    printf("\nmid: %lu", mid);
 
+    // group_p g_1 = group_launch(size, layer_count,   1, max, 0);
+    group_p g_1 = group_launch(size, layer_count,   1, mid, 0);
+    group_p g_2 = group_launch(size, layer_count, mid, max, 8);
+    
     fix_num_t fix_pi = pi_0(size, layer_count);
-    return fix_num_add(fix_pi, group_join(g));
+    fix_pi = fix_num_add(fix_pi, group_join(g_1));
+    fix_pi = fix_num_add(fix_pi, group_join(g_2));
+    return fix_pi;
+
+    return a_n(mid, size, layer_count);
 }

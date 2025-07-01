@@ -15,12 +15,11 @@ int main()
 
     // clu_set_log(true);
 
-    uint64_t size = 100;
-    uint64_t max = 11 * size;
-    fix_num_t fix = pi_threads(size, max);
+    fix_num_t fix = pi_threads(10000);
 
     printf("\n\n");
-    fix_num_display_dec(fix);
+    // fix_num_display_dec(fix);
+    fix_num_free(fix);
 
     printf("\n");
     return 0;
