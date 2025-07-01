@@ -157,35 +157,6 @@ handler_p thread_c(handler_p _args)
 
 
 
-float_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count, uint64_t batch_size)
-{
-    float_num_t flt_1 = float_num_wrap(6, size);
-    float_num_t flt_2 = float_num_wrap(1, size);
-    uint64_t tam = 1000;
-    for(uint64_t i=1; i<i_0; i++)
-    {
-        if(i%tam == 0)printf("\ni: %lu / %lu", i / tam, i_0 / tam);
-        for(uint64_t j=0; j<batch_size; j++)
-        {
-            uint64_t index = (i * batch_size + j) * layer_count;
-
-            sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
-            sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
-            for(uint64_t k=1; k<layer_count; k++)
-            {
-                sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index + k) - 3));
-                sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index + k)));
-            }
-
-            flt_1 = float_num_mul_sig(flt_1, sig_1);
-            flt_2 = float_num_mul_sig(flt_2, sig_2);
-        }
-    }
-    return float_num_div(flt_1, flt_2);
-}
-
-
-
 void pi_queue_res_free(handler_p h, uint64_t res_size)
 {
     uint64_t batch_size = res_size / sizeof(fix_num_t);
@@ -233,6 +204,33 @@ void group_free(group_p g)
 {
     free(g->layers);
     free(g);
+}
+
+float_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count, uint64_t batch_size)
+{
+    float_num_t flt_1 = float_num_wrap(6, size);
+    float_num_t flt_2 = float_num_wrap(1, size);
+    uint64_t tam = 1000;
+    for(uint64_t i=1; i<i_0; i++)
+    {
+        if(i%tam == 0)printf("\ni: %lu / %lu", i / tam, i_0 / tam);
+        for(uint64_t j=0; j<batch_size; j++)
+        {
+            uint64_t index = (i * batch_size + j) * layer_count;
+
+            sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
+            sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
+            for(uint64_t k=1; k<layer_count; k++)
+            {
+                sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index + k) - 3));
+                sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index + k)));
+            }
+
+            flt_1 = float_num_mul_sig(flt_1, sig_1);
+            flt_2 = float_num_mul_sig(flt_2, sig_2);
+        }
+    }
+    return float_num_div(flt_1, flt_2);
 }
 
 group_p group_launch(uint64_t size, uint64_t i_0, uint64_t i_max)
