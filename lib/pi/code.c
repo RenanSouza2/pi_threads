@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "debug.h"
 #include "../../mods/clu/header.h"
@@ -57,11 +58,6 @@ handler_p thread_a(handler_p _args)
         fix_a = fix_num_mul_sig(fix_a, sig_1);
         fix_a = fix_num_shr(fix_a, 3 * layer_count);
         fix_a = fix_num_div_sig(fix_a, sig_2);
-
-        if(id == 0)
-        {
-            printf("\na: %lu\t", index); fix_num_display_dec(fix_a);
-        }
 
         fix_num_t fix_a_send = fix_num_copy(fix_a);
         queue_send(queue_a_b, &fix_a_send, NULL);
@@ -225,9 +221,14 @@ fix_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count)
     return fix_num_wrap_float(flt_1);
 }
 
-group_p group_launch(uint64_t size, uint64_t i_0, uint64_t i_max, uint64_t thread_0)
+group_p group_launch(
+    uint64_t size,
+    uint64_t layer_count,
+    uint64_t i_0,
+    uint64_t i_max,
+    uint64_t thread_0
+)
 {
-    uint64_t layer_count = 2;
     uint64_t queue_size = 5;
 
     group_p g = group_create(layer_count);
@@ -238,8 +239,7 @@ group_p group_launch(uint64_t size, uint64_t i_0, uint64_t i_max, uint64_t threa
     a0[0] = fix_num_copy(fix_a);
     for(uint64_t i=1; i<layer_count; i++)
     {
-        uint64_t index = i + layer_count * i_0;
-        CLU_HANDLER_IS_SAFE(fix_a.sig.num);
+        uint64_t index = i + layer_count * (i_0 - 1);
         fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * index - 3));
         fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * index));
         a0[i] = fix_num_copy(fix_a);
@@ -313,8 +313,32 @@ fix_num_t group_join(group_p g)
 
 
 
+fix_num_t pi_0(uint64_t size, uint64_t layer_count)
+{
+    
+    fix_num_t fix_a = fix_num_wrap(6, size - 1);
+    fix_num_t fix_pi = fix_num_wrap(3, size - 1);
+    for(uint64_t i=1; i<layer_count; i++)
+    {
+        fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3));
+        fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i));
+
+        fix_num_t fix_b = fix_num_copy(fix_a);
+        fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i));
+        fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2));
+
+        fix_pi = fix_num_add(fix_pi, fix_b);
+    }
+    fix_num_free(fix_a);
+    return fix_pi;
+}
+
 fix_num_t pi_threads(uint64_t size, uint64_t max)
 {
-    group_p g = group_launch(size, 1, max, 0);
-    return group_join(g);
+    uint64_t layer_count = 3;
+
+    group_p g = group_launch(size, layer_count, 1, max, 0);
+
+    fix_num_t fix_pi = pi_0(size, layer_count);
+    return fix_num_add(fix_pi, group_join(g));
 }

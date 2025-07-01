@@ -15,7 +15,9 @@ int main()
 
     // clu_set_log(true);
 
-    fix_num_t fix = pi_threads(2, 10);
+    uint64_t size = 100;
+    uint64_t max = 11 * size;
+    fix_num_t fix = pi_threads(size, max);
 
     printf("\n\n");
     fix_num_display_dec(fix);
