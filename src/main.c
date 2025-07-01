@@ -15,7 +15,7 @@ int main()
 
     // clu_set_log(true);
 
-    fix_num_t fix = pi_threads(2, 100);
+    fix_num_t fix = pi_threads(2, 10);
 
     printf("\n\n");
     fix_num_display_dec(fix);
