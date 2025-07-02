@@ -33,6 +33,7 @@ STRUCT(thread_mul_sig_args)
     float_num_t flt;
     pthread_t *tid;
     bool volatile launched;
+    uint64_t split;
 };
 
 handler_p thread_mul_sig(handler_p _args)
@@ -45,11 +46,12 @@ handler_p thread_mul_sig(handler_p _args)
     uint64_t i_max = args->i_max;
     uint64_t id = args->id;
     pthread_t *tid = args->tid;
+    uint64_t split = args->split;
 
     element_f element = args->element;
 
     float_num_t flt = float_num_wrap(1, size);
-    for(uint64_t i=i_0 + id; i<i_max; i+=4)
+    for(uint64_t i=i_0 + id; i<i_max; i+=split)
     {
         uint64_t index = 1 + layer_count * i;
 
@@ -60,20 +62,15 @@ handler_p thread_mul_sig(handler_p _args)
         flt = float_num_mul_sig(flt, sig);
     }
 
-    while(!args->launched);
+    while(!args->launched)
+        printf("\nopoha");
 
-    args->flt = flt;
-    if(id&1)
-        return &args->flt;
+    for(uint64_t mask = 1; ((mask & id) == 0) && (mask < split); mask *= 2)
+    { 
+        pthread_join_treat(tid[id+mask]);
+        flt = float_num_mul(flt, args[mask].flt);
+    }
 
-    pthread_join_treat(tid[id+1]);
-    flt = float_num_mul(flt, args[1].flt);
-    args->flt = flt;
-    if(id)
-        return &args->flt;
-
-    pthread_join_treat(tid[id+2]);
-    flt = float_num_mul(flt, args[2].flt);
     args->flt = flt;  
     return &args->flt;
 }
@@ -96,13 +93,15 @@ fix_num_t a(
     uint64_t k
 )
 {
-    thread_mul_sig_args_t args_upper[4];
-    thread_mul_sig_args_t args_lower[4];
+    uint64_t split = 4;
 
-    pthread_t tid_upper[4];
-    pthread_t tid_lower[4];
+    thread_mul_sig_args_t args_upper[split];
+    thread_mul_sig_args_t args_lower[split];
+
+    pthread_t tid_upper[split];
+    pthread_t tid_lower[split];
     
-    for(uint64_t i=0; i<4; i++)
+    for(uint64_t i=0; i<split; i++)
     {
         args_upper[i] = (thread_mul_sig_args_t)
         {
@@ -112,7 +111,8 @@ fix_num_t a(
             .i_max = i_0,
             .id = i,
             .element = element_upper,
-            .tid = tid_upper
+            .tid = tid_upper,
+            .split = split
         };
         tid_upper[i] = pthread_create_treat(thread_mul_sig, &args_upper[i]);
         pthread_lock(tid_upper[i], thread_0 + i);
@@ -125,13 +125,14 @@ fix_num_t a(
             .i_max = i_0,
             .id = i,
             .element = element_lower,
-            .tid = tid_lower
+            .tid = tid_lower,
+            .split = split
         };
         tid_lower[i] = pthread_create_treat(thread_mul_sig, &args_lower[i]);
-        pthread_lock(tid_lower[i], thread_0 + 4 + i);
+        pthread_lock(tid_lower[i], thread_0 + split + i);
     }
 
-    for(uint64_t i=0; i<4; i++)
+    for(uint64_t i=0; i<split; i++)
     {
         args_upper[i].launched = true;
         args_lower[i].launched = true;
