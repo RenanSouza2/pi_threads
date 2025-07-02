@@ -10,6 +10,7 @@
 #include "../../mods/number/lib/sig/header.h"
 #include "../../mods/number/lib/num/struct.h"
 
+#include "../jumpstart/header.h"
 #include "../junc/header.h"
 #include "../queue/header.h"
 #include "../pear/header.h"
@@ -195,32 +196,6 @@ void group_free(group_p g)
     free(g);
 }
 
-fix_num_t a_n(uint64_t i_0, uint64_t size, uint64_t layer_count)
-{
-    float_num_t flt_1 = float_num_wrap(6, size);
-    float_num_t flt_2 = float_num_wrap(1, size);
-    uint64_t tam = 1000;
-    for(uint64_t i=1; i<i_0; i++)
-    {
-        // if(i%tam == 0) printf("\ni: %lu / %lu", i / tam, i_0 / tam);
-
-        uint64_t index = 1 + layer_count * i;
-
-        sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
-        sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
-        for(uint64_t k=1; k<layer_count; k++)
-        {
-            sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index + k) - 3));
-            sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index + k)));
-        }
-
-        flt_1 = float_num_mul_sig(flt_1, sig_1);
-        flt_2 = float_num_mul_sig(flt_2, sig_2);
-    }
-    flt_1 = float_num_div(flt_1, flt_2);
-    return fix_num_wrap_float(flt_1);
-}
-
 group_p group_launch(
     uint64_t size,
     uint64_t layer_count,
@@ -236,7 +211,7 @@ group_p group_launch(
     g->junc_b_c = junc_init(layer_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
     
     fix_num_t a0[layer_count];
-    fix_num_t fix_a = a_n(i_0, size, layer_count);
+    fix_num_t fix_a = jumpstart(i_0, size, layer_count);
     a0[0] = fix_num_copy(fix_a);
     for(uint64_t i=1; i<layer_count; i++)
     {
@@ -342,14 +317,14 @@ fix_num_t pi_threads(uint64_t size)
     uint64_t mid = max / 2;
     printf("\nmid: %lu", mid);
 
-    // group_p g_1 = group_launch(size, layer_count,   1, max, 0);
-    group_p g_1 = group_launch(size, layer_count,   1, mid, 0);
-    group_p g_2 = group_launch(size, layer_count, mid, max, 8);
+    // // group_p g_1 = group_launch(size, layer_count,   1, max, 0);
+    // group_p g_1 = group_launch(size, layer_count,   1, mid, 0);
+    // group_p g_2 = group_launch(size, layer_count, mid, max, 8);
     
-    fix_num_t fix_pi = pi_0(size, layer_count);
-    fix_pi = fix_num_add(fix_pi, group_join(g_1));
-    fix_pi = fix_num_add(fix_pi, group_join(g_2));
-    return fix_pi;
+    // fix_num_t fix_pi = pi_0(size, layer_count);
+    // fix_pi = fix_num_add(fix_pi, group_join(g_1));
+    // fix_pi = fix_num_add(fix_pi, group_join(g_2));
+    // return fix_pi;
 
-    return a_n(mid, size, layer_count);
+    return jumpstart(mid, size, layer_count);
 }

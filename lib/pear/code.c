@@ -31,9 +31,11 @@ void pthread_lock(pthread_t thread_id, uint64_t cpu)
     TREAT(pthread_setaffinity_np(thread_id, sizeof(cpu_set_t), &cpuset));
 }
 
-void pthread_join_treat(pthread_t thread_id)
+handler_p pthread_join_treat(pthread_t thread_id)
 {
-    TREAT(pthread_join(thread_id, NULL));
+    handler_p h;
+    TREAT(pthread_join(thread_id, &h));
+    return h;
 }
 
 uint64_t sem_getvalue_treat(sem_t *sem)

@@ -1,4 +1,15 @@
 #ifndef __JUMPSTART_H__
 #define __JUMPSTART_H__
 
+#include "../../mods/number/lib/fix/header.h"
+
+fix_num_t a(
+    uint64_t i_0,
+    uint64_t size,
+    uint64_t layer_count,
+    uint64_t thread_0,
+    uint64_t k
+);
+fix_num_t jumpstart(uint64_t i_0, uint64_t size, uint64_t layer_count);
+
 #endif
