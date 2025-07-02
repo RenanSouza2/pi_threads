@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 
+
 typedef int64_t (*element_f)(int64_t i);
 
 STRUCT(thread_mul_sig_args)
@@ -95,12 +96,6 @@ fix_num_t a(
     uint64_t k
 )
 {
-    printf("\ni_0\t\t: %lu", i_0);
-    printf("\nsize\t\t: %lu", size);
-    printf("\nlayer_count\t: %lu", layer_count);
-    printf("\nk\t\t: %lu", k);
-    printf("\n");
-
     thread_mul_sig_args_t args_upper[4];
     thread_mul_sig_args_t args_lower[4];
 
@@ -142,13 +137,12 @@ fix_num_t a(
         args_lower[i].launched = true;
     }
 
-    printf("\nlaunched");
-
     pthread_join_treat(tid_upper[0]);
-    pthread_join_treat(tid_lower[0]);
-
     float_num_t flt = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(6));
+
+    pthread_join_treat(tid_lower[0]);
     flt = float_num_div(flt, args_lower[0].flt);
+
     return fix_num_wrap_float(flt, size); 
 }
 

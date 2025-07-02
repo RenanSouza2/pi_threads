@@ -313,9 +313,9 @@ fix_num_t pi_threads(uint64_t size)
 {
     uint64_t layer_count = 3;
 
-    uint64_t max = 11 * size;
-    uint64_t mid = max / 2;
-    printf("\nmid: %lu", mid);
+    uint64_t max = 32 * size + 4;
+    uint64_t i_max = (max / layer_count) + 1;
+    uint64_t mid = i_max / 2;
 
     // // group_p g_1 = group_launch(size, layer_count,   1, max, 0);
     // group_p g_1 = group_launch(size, layer_count,   1, mid, 0);

@@ -26,17 +26,23 @@ int main()
     // // fix_num_display_dec(fix);
     // fix_num_free(fix);
 
-    uint64_t size = 2;
+    uint64_t size = 50000;
+    uint64_t layer_count = 3;
+
     uint64_t max = 32 * size + 4;
-    uint64_t layers_count = 3;
-    uint64_t i_max = (max / layers_count) + 1;
-    // uint64_t mid = max / 2;
-    // uint64_t k = (mid / 32) - 1;
-    fix_num_t flt_2 = a(i_max / 2, size, layers_count, 8, 0);
-    // fix_num_t flt_b = pi_threads(size);
-    // printf("\na\t");fix_num_display(flt_1);
-    printf("\na\t");fix_num_display(flt_2);
-    // printf("\nb\t");fix_num_display(flt_b);
+    uint64_t i_max = (max / layer_count) + 1;
+
+    uint64_t begin = get_time();
+    a(i_max / 2, size, layer_count, 8, 0);
+    uint64_t end = get_time();
+    uint64_t time_1 = end - begin;
+    printf("\ntime 1: %.2f", time_1 / 1e9);
+
+    begin = get_time();
+    pi_threads(size);
+    end = get_time();
+    uint64_t time_2 = end - begin;
+    printf("\ntime 2: %.2f", time_2 / 1e9);
 
     printf("\n");
     return 0;
