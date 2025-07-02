@@ -82,7 +82,7 @@ int64_t element_upper(int64_t index)
 
 int64_t element_lower(int64_t index)
 {
-    return 8 * index;
+    return index;
 }
 
 fix_num_t a(
@@ -140,6 +140,7 @@ fix_num_t a(
 
     pthread_join_treat(tid_upper[0]);
     float_num_t flt = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(6));
+    flt = float_num_shr(flt, 3 * i_0 * layer_count);
 
     pthread_join_treat(tid_lower[0]);
     flt = float_num_div(flt, args_lower[0].flt);
