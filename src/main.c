@@ -26,7 +26,7 @@ int main()
     // // fix_num_display_dec(fix);
     // fix_num_free(fix);
 
-    uint64_t size = 50000;
+    uint64_t size = 100000;
     
     uint64_t layer_count = 3;
     uint64_t max = 32 * size + 4;
