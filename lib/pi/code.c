@@ -44,6 +44,8 @@ handler_p thread_a(handler_p _args)
     queue_p queue_a_b = args->queue_a_b;
     fix_num_t fix_a = args->a0;
 
+
+
     for(uint64_t i=i_0; i<i_max; i++)
     {
         uint64_t index = id + layer_count * i;
@@ -211,7 +213,7 @@ group_p group_launch(
     g->junc_b_c = junc_init(layer_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
     
     fix_num_t a0[layer_count];
-    fix_num_t fix_a = jumpstart(i_0, size, layer_count);
+    fix_num_t fix_a = jumpstart_standard(i_0, size, layer_count);
     a0[0] = fix_num_copy(fix_a);
     for(uint64_t i=1; i<layer_count; i++)
     {
@@ -317,14 +319,11 @@ fix_num_t pi_threads(uint64_t size)
     uint64_t i_max = (max / layer_count) + 1;
     uint64_t mid = i_max / 2;
 
-    // // group_p g_1 = group_launch(size, layer_count,   1, max, 0);
-    // group_p g_1 = group_launch(size, layer_count,   1, mid, 0);
-    // group_p g_2 = group_launch(size, layer_count, mid, max, 8);
+    group_p g_1 = group_launch(size, layer_count,   1, mid, 0);
+    group_p g_2 = group_launch(size, layer_count, mid, max, 8);
     
-    // fix_num_t fix_pi = pi_0(size, layer_count);
-    // fix_pi = fix_num_add(fix_pi, group_join(g_1));
-    // fix_pi = fix_num_add(fix_pi, group_join(g_2));
-    // return fix_pi;
-
-    return jumpstart(mid, size, layer_count);
+    fix_num_t fix_pi = pi_0(size, layer_count);
+    fix_pi = fix_num_add(fix_pi, group_join(g_1));
+    fix_pi = fix_num_add(fix_pi, group_join(g_2));
+    return fix_pi;
 }
