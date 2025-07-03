@@ -34,7 +34,7 @@ int main()
     setbuf(stdout, NULL);
     TIME_SETUP
 
-    uint64_t size = 2;
+    uint64_t size = 50000;
 
     // for(uint64_t i=1; i<100; i++)
     // {
@@ -74,12 +74,12 @@ int main()
         TIME_START
         fix_num_t fix_3 = jumpstart_ass_1(i, size, 3);
         TIME_END(time_3)
-        printf("\ntime_ass\t: %.2f", time_3 / 1e9);
+        printf("\ntime_ass_1\t: %.2f", time_3 / 1e9);
 
         TIME_START
         fix_num_t fix_4 = jumpstart_ass_2(i, size, 3);
         TIME_END(time_4)
-        printf("\ntime_ass\t: %.2f", time_4 / 1e9);
+        printf("\ntime_ass_2\t: %.2f", time_4 / 1e9);
 
         TIME_START
         fix_num_t fix_5 = jumpstart_thread(i, size, layer_count, 0);

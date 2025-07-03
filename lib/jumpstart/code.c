@@ -67,13 +67,9 @@ handler_p thread_mul_sig(handler_p _args)
     uint64_t i_max = (n_max + layer_count - 2) / layer_count;
     uint64_t delta = (n_max_0 + 1) / 2;
 
-    dbg("launching %s %lu", element == element_upper ? "upper" : "lower", id);
-
     float_num_t flt = float_num_wrap(1, size);
     for(uint64_t i=0 + id; i<i_max; i+=split)
     {
-        printf("\n%lu / %lu", i, i_max);
-
         uint64_t index = 2 + layer_count * i;
 
         sig_num_t sig = sig_num_wrap(element(index, delta));
@@ -85,16 +81,11 @@ handler_p thread_mul_sig(handler_p _args)
 
     while(!args->launched);
 
-    printf("\n\tENDED");
     for(uint64_t mask = 1; ((mask & id) == 0) && (mask < split); mask *= 2)
     {
-        printf("\nmask: %lu %lu", mask, split);
-
         pthread_join_treat(tid[id+mask]);
         flt = float_num_mul(flt, args[mask].flt);
     }
-
-    printf("\nprocess %lu ending", id);
 
     args->flt = flt;  
     return &args->flt;
@@ -116,8 +107,7 @@ fix_num_t jumpstart_thread(
 
     uint64_t n_max_0 = (i_0 - 1) * layer_count;
     assert(n_max_0 > 3);
-    uint64_t n_max = n_max_0 / 2;
-    uint64_t pos = size - n_max / 64;
+    uint64_t pos = size - n_max_0 / 32;
     
     for(uint64_t i=0; i<split; i++)
     {
@@ -157,14 +147,13 @@ fix_num_t jumpstart_thread(
     }
 
     pthread_join_treat(tid_upper[0]);
-    float_num_t flt_1 = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(-6));
-    flt_1 = float_num_shr(flt_1, 7 * n_max_0 / 2);
+    float_num_t flt = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(-6));
+    flt = float_num_shr(flt, 7 * n_max_0 / 2);
     
     pthread_join_treat(tid_lower[0]);
-    float_num_t flt_2 = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(-6));
-    flt_1 = float_num_div(flt_1, flt_2);
+    flt = float_num_div(flt, args_lower[0].flt);
 
-    return fix_num_wrap_float(flt_1, size); 
+    return fix_num_wrap_float(flt, size); 
 }
 
 
@@ -252,7 +241,7 @@ fix_num_t jumpstart_ass_2(uint64_t i_0, uint64_t size, uint64_t layer_count)
     uint64_t n_max = n_max_0 / 2;
     uint64_t i_max = (n_max + layer_count - 2) / layer_count;
     uint64_t delta = (n_max_0 + 1) / 2;
-    uint64_t pos = size - n_max / 64;
+    uint64_t pos = size - n_max_0 / 32;
 
     float_num_t flt_1 = float_num_wrap(-6, pos);
     float_num_t flt_2 = float_num_wrap( 1, pos);
