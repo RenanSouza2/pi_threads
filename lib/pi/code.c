@@ -28,7 +28,7 @@ STRUCT(thread_a_args)
     uint64_t i_0, i_max;
 
     uint64_t id;
-    queue_p queue_a_b;
+    junc_p junc_a_b;
     fix_num_t a0;
 };
 
@@ -41,10 +41,8 @@ handler_p thread_a(handler_p _args)
     uint64_t i_max = args->i_max;
 
     uint64_t id = args->id;
-    queue_p queue_a_b = args->queue_a_b;
+    junc_p junc_a_b = args->junc_a_b;
     fix_num_t fix_a = args->a0;
-
-
 
     for(uint64_t i=i_0; i<i_max; i++)
     {
@@ -63,7 +61,7 @@ handler_p thread_a(handler_p _args)
         fix_a = fix_num_div_sig(fix_a, sig_2);
 
         fix_num_t fix_a_send = fix_num_copy(fix_a);
-        queue_send(queue_a_b, &fix_a_send, NULL);
+        junc_send(junc_a_b, &fix_a_send, NULL);
     }
     fix_num_free(fix_a);
 
@@ -136,7 +134,7 @@ handler_p thread_c(handler_p _args)
         for(uint64_t j=0; j<layer_count; j++)
         {
             fix_num_t fix_b;
-            junc_get(junc_b_c, &fix_b, NULL);
+            junc_recv(junc_b_c, &fix_b, NULL);
             fix_c = fix_num_add(fix_c, fix_b);
         }
     }
@@ -156,13 +154,14 @@ void pi_queue_res_free(handler_p h, uint64_t res_size)
 
 STRUCT(layer)
 {
-    queue_t queue_a_b;
+    uint64_t layer_b_count;
+    junc_t junc_a_b;
 
     thread_a_args_t args_a;
-    thread_b_args_t args_b;
+    thread_b_args_p args_b;
     
     pthread_t tid_a;
-    pthread_t tid_b;
+    pthread_t *tid_b;
 
     fix_num_t a0;
 };
@@ -177,10 +176,21 @@ STRUCT(group)
     pthread_t tid_c;
 };
 
-group_p group_create(uint64_t layer_count)
+group_p group_create(uint64_t layer_count, uint64_t layer_b_count)
 {
     layer_p layers = malloc(layer_count * sizeof(layer_t));
     assert(layers);
+
+    for(uint64_t i=0; i<layer_count; i++)
+    {
+        layers[i].layer_b_count = layer_b_count;
+
+        layers[i].args_b = malloc(layer_b_count * sizeof(thread_b_args_t));
+        assert(layers[i].args_b);
+
+        layers[i].tid_b = malloc(layer_b_count * sizeof(pthread_t));
+        assert(layers[i].tid_b);
+    }
 
     group_p g = malloc(sizeof(group_t));
     assert(g);
@@ -194,7 +204,14 @@ group_p group_create(uint64_t layer_count)
 
 void group_free(group_p g)
 {
+    for(uint64_t i=0; i<g->layer_count; i++)
+    {
+        free(g->layers[i].args_b);
+        free(g->layers[i].tid_b);
+    }
+
     free(g->layers);
+
     free(g);
 }
 
@@ -207,10 +224,10 @@ group_p group_launch(
 )
 {
     uint64_t queue_size = 5;
-    pthread_lock(pthread_self(), 8);
+    uint64_t layer_b_count = 2;
 
-    group_p g = group_create(layer_count);
-    g->junc_b_c = junc_init(layer_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
+    group_p g = group_create(layer_count, layer_b_count);
+    g->junc_b_c = junc_init(layer_count * layer_b_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
     
     fix_num_t a0[layer_count];
     fix_num_t fix_a = jumpstart_thread(i_0, size, layer_count, thread_0, 2);
@@ -226,7 +243,7 @@ group_p group_launch(
 
     for(uint64_t i=0; i<layer_count; i++)
     {
-        g->layers[i].queue_a_b = queue_init(queue_size, sizeof(fix_num_t), pi_queue_res_free);
+        g->layers[i].junc_a_b = junc_init(layer_b_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
         g->layers[i].args_a = (thread_a_args_t)
         {
             .layer_count = layer_count,
@@ -234,24 +251,27 @@ group_p group_launch(
             .i_max = i_max,
 
             .id = i,
-            .queue_a_b = &g->layers[i].queue_a_b,
+            .junc_a_b = &g->layers[i].junc_a_b,
             .a0 = a0[i]
         };
         g->layers[i].tid_a = pthread_create_treat(thread_a, &g->layers[i].args_a);
         pthread_lock(g->layers[i].tid_a, thread_0 + 2 * i);
 
-        g->layers[i].args_b = (thread_b_args_t)
+        for(uint64_t j=0; j<layer_b_count; j++)
         {
-            .layer_count = layer_count,
-            .i_0 = i_0,
-            .i_max = i_max,
+            g->layers[i].args_b[j] = (thread_b_args_t)
+            {
+                .layer_count = layer_count,
+                .i_0 = i_0,
+                .i_max = i_max,
 
-            .id = i,
-            .queue_a_b = &g->layers[i].queue_a_b,
-            .queue_b_c = &g->junc_b_c.queues[i]
-        };
-        g->layers[i].tid_b = pthread_create_treat(thread_b, &g->layers[i].args_b);
-        pthread_lock(g->layers[i].tid_b, thread_0 + 2 * i + 1);
+                .id = i,
+                .queue_a_b = &g->layers[i].junc_a_b.queues[j],
+                .queue_b_c = &g->junc_b_c.queues[i + layer_count * j]
+            };
+            g->layers[i].tid_b[j] = pthread_create_treat(thread_b, &g->layers[i].args_b);
+        }
+        pthread_lock(g->layers[i].tid_b[0], thread_0 + 2 * i + 1);
     }
 
     g->args_c = (thread_c_args_t)
@@ -273,13 +293,18 @@ fix_num_t group_join(group_p g)
     pthread_join_treat(g->tid_c);
     for(uint64_t i=0; i<g->layer_count; i++)
     {
-        assert(queue_get_occupancy(&g->layers[i].queue_a_b) == 0);
-        assert(queue_get_occupancy(&g->junc_b_c.queues[i]) == 0);
+        for(uint64_t j=0; j<g->layers[i].layer_b_count; j++)
+        {
+            assert(queue_get_occupancy(&g->layers[i].junc_a_b.queues[j]) == 0);
+            assert(queue_get_occupancy(&g->junc_b_c.queues[i + g->layer_count * j]) == 0);
+        }
         
         pthread_join_treat(g->layers[i].tid_a);
-        pthread_join_treat(g->layers[i].tid_b);
         
-        queue_free(&g->layers[i].queue_a_b);
+        for(uint64_t j=0; j<g->layers[i].layer_b_count; j++)
+            pthread_join_treat(g->layers[i].tid_b[j]);
+        
+        junc_free(&g->layers[i].junc_a_b);
     }
     junc_free(&g->junc_b_c);
 

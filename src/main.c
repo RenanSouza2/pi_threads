@@ -33,7 +33,7 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    fix_num_t fix_pi = pi_threads(50000);
+    fix_num_t fix_pi = pi_threads(3);
     printf("\npi: ");fix_num_display_dec(fix_pi);
 
     printf("\n");
