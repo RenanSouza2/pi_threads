@@ -105,6 +105,9 @@ fix_num_t jumpstart_thread(
     pthread_t tid_lower[split];
 
     uint64_t n_max_0 = (i_0 - 1) * layer_count;
+    if(n_max_0 == 0)
+        return fix_num_wrap(6, size - 1);
+
     assert(n_max_0 > 3);
     uint64_t pos = size - n_max_0 / 32;
     

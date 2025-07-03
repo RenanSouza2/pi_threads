@@ -213,7 +213,7 @@ group_p group_launch(
     g->junc_b_c = junc_init(layer_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
     
     fix_num_t a0[layer_count];
-    fix_num_t fix_a = jumpstart_standard(i_0, size, layer_count);
+    fix_num_t fix_a = jumpstart_thread(i_0, size, layer_count, thread_0, 2);
     a0[0] = fix_num_copy(fix_a);
     for(uint64_t i=1; i<layer_count; i++)
     {
