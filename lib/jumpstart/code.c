@@ -61,17 +61,18 @@ handler_p thread_mul_sig(handler_p _args)
     float_num_t flt = float_num_wrap(1, size);
     for(uint64_t i=i_0 + id; i<i_max; i+=split)
     {
-        uint64_t index = 1 + layer_count * i;
+        uint64_t index = layer_count * i;
 
         sig_num_t sig_1 = sig_num_wrap(element_upper(index));
         sig_num_t sig_2 = sig_num_wrap(element_lower(index));
         for(uint64_t k=1; k<layer_count; k++)
         {
-            sig_1 = sig_num_mul(sig_1, sig_num_wrap(element_upper(index + k)));
-            sig_2 = sig_num_mul(sig_2, sig_num_wrap(element_lower(index + k)));
+            sig_1 = sig_num_mul(sig_1, sig_num_wrap(element_upper(index - k)));
+            sig_2 = sig_num_mul(sig_2, sig_num_wrap(element_lower(index - k)));
         }
 
         flt = float_num_mul_sig(flt, sig_1);
+        flt = float_num_div_sig(flt, sig_2);
     }
 
     while(!args->launched);
@@ -94,7 +95,6 @@ fix_num_t jumpstart_thread(
     uint64_t k
 )
 {
-    assert(i_0%2 == 0);
     uint64_t split = 8;
 
     thread_mul_sig_args_t args[split];
@@ -117,13 +117,11 @@ fix_num_t jumpstart_thread(
     }
 
     for(uint64_t i=0; i<split; i++)
-    {
         args[i].launched = true;
-    }
 
     pthread_join_treat(tid[0]);
     float_num_t flt = float_num_mul_sig(args[0].flt, sig_num_wrap(6));
-    flt = float_num_shr(flt, 3 * i_0 * layer_count);
+    flt = float_num_shr(flt, 3 * (i_0 - 1) * layer_count);
 
     return fix_num_wrap_float(flt, size); 
 }
@@ -152,4 +150,25 @@ fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
     }
     flt_1 = float_num_div(flt_1, flt_2);
     return fix_num_wrap_float(flt_1, size);
+}
+
+fix_num_t jumpstart_current(uint64_t i_0, uint64_t size, uint64_t layer_count)
+{
+    float_num_t flt = float_num_wrap(6, size);
+    for(uint64_t i=1; i<i_0; i++)
+    {
+        uint64_t index = 1 + layer_count * (i - 1);
+
+        sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
+        sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
+        for(uint64_t k=1; k<layer_count; k++)
+        {
+            sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index + k) - 3));
+            sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index + k)));
+        }
+
+        flt = float_num_mul_sig(flt, sig_1);
+        flt = float_num_div_sig(flt, sig_2);
+    }
+    return fix_num_wrap_float(flt, size);
 }

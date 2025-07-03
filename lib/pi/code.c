@@ -313,7 +313,7 @@ fix_num_t pi_0(uint64_t size, uint64_t layer_count)
 
 fix_num_t pi_threads(uint64_t size)
 {
-    uint64_t layer_count = 2;
+    uint64_t layer_count = 3;
 
     uint64_t n_max = 32 * size + 4;
     uint64_t i_max = (n_max / layer_count) + 1;
