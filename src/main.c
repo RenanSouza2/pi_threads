@@ -72,29 +72,37 @@ int main()
         printf("\ntime_div\t: %.2f", time_2 / 1e9);
 
         TIME_START
-        fix_num_t fix_3 = jumpstart_ass(i, size, 3);
+        fix_num_t fix_3 = jumpstart_ass_1(i, size, 3);
         TIME_END(time_3)
         printf("\ntime_ass\t: %.2f", time_3 / 1e9);
 
         TIME_START
-        fix_num_t fix_4 = jumpstart_thread(i, size, layer_count, 0, 0);
+        fix_num_t fix_4 = jumpstart_ass_2(i, size, 3);
         TIME_END(time_4)
-        printf("\ntime_thread\t: %.2f", time_4 / 1e9);
+        printf("\ntime_ass\t: %.2f", time_4 / 1e9);
+
+        TIME_START
+        fix_num_t fix_5 = jumpstart_thread(i, size, layer_count, 0, 0);
+        TIME_END(time_5)
+        printf("\ntime_thread\t: %.2f", time_5 / 1e9);
 
         printf("\n\n");
         printf("\n");fix_num_display(fix_1);
         printf("\n");fix_num_display(fix_2);
         printf("\n");fix_num_display(fix_3);
         printf("\n");fix_num_display(fix_4);
+        printf("\n");fix_num_display(fix_5);
 
         fix_2 = fix_num_sub(fix_num_copy(fix_1), fix_2);
         fix_3 = fix_num_sub(fix_num_copy(fix_1), fix_3);
         fix_4 = fix_num_sub(fix_num_copy(fix_1), fix_4);
+        fix_5 = fix_num_sub(fix_num_copy(fix_1), fix_5);
 
         printf("\n\n");
         printf("\n");fix_num_display(fix_2);
         printf("\n");fix_num_display(fix_3);
         printf("\n");fix_num_display(fix_4);
+        printf("\n");fix_num_display(fix_5);
     }
 
     printf("\n");
