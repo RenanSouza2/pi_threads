@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <semaphore.h>
 #include <stdbool.h>
+#include <stdarg.h>
 
 #include "debug.h"
 #include "../../mods/clu/header.h"
@@ -13,6 +14,22 @@
 
 #ifdef DEBUG
 #endif
+
+
+
+void dbg(char format[], ...)
+{
+    char name[100];
+    sprintf(name, "thread_log/log_%lu.txt", pthread_self());
+    FILE *fp = fopen(name, "a");
+    assert(fp);
+
+    va_list args;
+    va_start(args, format);
+    fprintf(fp, "\n");
+    vfprintf(fp, format, args);
+    fclose(fp);
+}
 
 
 
