@@ -152,23 +152,63 @@ fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
     return fix_num_wrap_float(flt_1, size);
 }
 
-fix_num_t jumpstart_current(uint64_t i_0, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_div_during(uint64_t i_0, uint64_t size, uint64_t layer_count)
 {
     float_num_t flt = float_num_wrap(6, size);
     for(uint64_t i=1; i<i_0; i++)
     {
-        uint64_t index = 1 + layer_count * (i - 1);
+        uint64_t index = layer_count * i;
 
         sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
         sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
         for(uint64_t k=1; k<layer_count; k++)
         {
-            sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index + k) - 3));
-            sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index + k)));
+            sig_1 = sig_num_mul(sig_1, sig_num_wrap((int64_t)2 * (index - k) - 3));
+            sig_2 = sig_num_mul(sig_2, sig_num_wrap((int64_t)8 * (index - k)));
         }
 
         flt = float_num_mul_sig(flt, sig_1);
         flt = float_num_div_sig(flt, sig_2);
     }
     return fix_num_wrap_float(flt, size);
+}
+
+int64_t ele_upper(uint64_t in, uint64_t n_max)
+{
+    return in > n_max ? 1 : 2 * (in) - 3;
+}
+
+int64_t ele_lower(uint64_t in, uint64_t n_max)
+{
+    return in > n_max ? 1 : in;
+}
+
+fix_num_t jumpstart_ass(uint64_t i_0, uint64_t size, uint64_t layer_count)
+{
+    uint64_t n_max_0 = (i_0 - 1) * layer_count;
+    assert(n_max_0 > 3);
+    uint64_t n_max = n_max_0 / 2;
+    uint64_t i_max = (n_max + layer_count - 2) / layer_count;
+    uint64_t delta = (n_max_0 + 1) / 2;
+
+    float_num_t flt_1 = float_num_wrap(-6, size);
+    float_num_t flt_2 = float_num_wrap( 1, size);
+    for(uint64_t i=0; i<i_max; i++)
+    {
+        uint64_t index = 2 + layer_count * i;
+
+        sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3);
+        sig_num_t sig_2 = sig_num_wrap(index);
+        for(uint64_t k=1; (k<layer_count) && index + k <= n_max; k++)
+        {
+            sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3));
+            sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k));
+        }
+
+        flt_1 = float_num_mul_sig(flt_1, sig_1);
+        flt_2 = float_num_mul_sig(flt_2, sig_2);
+    }
+    flt_1 = float_num_shr(flt_1, 7 * n_max_0 / 2);
+    flt_1 = float_num_div(flt_1, flt_2);
+    return fix_num_wrap_float(flt_1, size);
 }

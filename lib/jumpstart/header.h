@@ -3,8 +3,10 @@
 
 #include "../../mods/number/lib/fix/header.h"
 
-fix_num_t jumpstart_current(uint64_t i_0, uint64_t size, uint64_t layer_count);
 fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count);
+fix_num_t jumpstart_div_during(uint64_t i_0, uint64_t size, uint64_t layer_count);
+fix_num_t jumpstart_ass(uint64_t i_0, uint64_t size, uint64_t layer_count);
+
 fix_num_t jumpstart_thread(
     uint64_t i_0,
     uint64_t size,

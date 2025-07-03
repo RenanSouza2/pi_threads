@@ -6,6 +6,7 @@
 #include "../mods/macros/assert.h"
 #include "../mods/number/lib/sig/header.h"
 #include "../mods/number/lib/num/header.h"
+#include "../mods/number/lib/num/struct.h"
 
 #include "../lib/pi/header.h"
 #include "../lib/jumpstart/header.h"
@@ -19,23 +20,21 @@ uint64_t get_time()
     return time.tv_sec * (uint64_t)1e9 + time.tv_nsec;
 }
 
-#define TIME_START(TIME_VAR)                \
-    uint64_t TIME_VAR;                      \
-    {                                       \
-        uint64_p _time_var = &TIME_VAR;     \
-        uint64_t _time_begin = get_time();
+#define TIME_SETUP uint64_t _time_begin, _time_end;
 
-#define TIME_END                                \
-        uint64_t _time_end = get_time();        \
-        *_time_var = _time_end - _time_begin;   \
-    }
+#define TIME_START _time_begin = get_time();
+
+#define TIME_END(TIME_VAR)                          \
+    _time_end = get_time();                         \
+    uint64_t TIME_VAR = _time_end - _time_begin;    \
 
 // int main(int argc, char** argv)
 int main()
 {
     setbuf(stdout, NULL);
+    TIME_SETUP
 
-    uint64_t size = 20000;
+    uint64_t size = 10000;
 
     // for(uint64_t i=1; i<100; i++)
     // {
@@ -56,22 +55,47 @@ int main()
     uint64_t layer_count = 3;
     uint64_t n_max = 32 * size + 4;
     uint64_t i_max = (n_max / layer_count) + 1;
-    uint64_t i_mid = i_max / 2;
+    uint64_t i = i_max / 2;
 
-    // TIME_START(time_1)
-    // jumpstart_standard(i_mid, size, 3);
-    // TIME_END
-    // printf("\ntime_standard: %.2f", time_1 / 1e9);
-    
-    // TIME_START(time_2)
-    // jumpstart_current(i_mid, size, 3);
-    // TIME_END
-    // printf("\ntime_thread: %.2f", time_2 / 1e9);
+    // for(uint64_t i=3; i<i_max; i++)
+    {
+        printf("\n\ni: %lu", i);
 
-    TIME_START(time_3)
-    jumpstart_thread(i_mid, size, 3, 0, 0);
-    TIME_END
-    printf("\ntime_thread: %.2f", time_3 / 1e9);
+        TIME_START
+        fix_num_t fix_1 = jumpstart_standard(i, size, 3);
+        TIME_END(time_1)
+        printf("\ntime_standard\t: %.2f", time_1 / 1e9);
+
+        TIME_START
+        fix_num_t fix_2 = jumpstart_div_during(i, size, 3);
+        TIME_END(time_2)
+        printf("\ntime_div\t: %.2f", time_2 / 1e9);
+
+        TIME_START
+        fix_num_t fix_3 = jumpstart_ass(i, size, 3);
+        TIME_END(time_3)
+        printf("\ntime_ass\t: %.2f", time_3 / 1e9);
+
+        TIME_START
+        fix_num_t fix_4 = jumpstart_thread(i, size, layer_count, 0, 0);
+        TIME_END(time_4)
+        printf("\ntime_thread\t: %.2f", time_4 / 1e9);
+
+        printf("\n\n");
+        printf("\n");fix_num_display(fix_1);
+        printf("\n");fix_num_display(fix_2);
+        printf("\n");fix_num_display(fix_3);
+        printf("\n");fix_num_display(fix_4);
+
+        fix_2 = fix_num_sub(fix_num_copy(fix_1), fix_2);
+        fix_3 = fix_num_sub(fix_num_copy(fix_1), fix_3);
+        fix_4 = fix_num_sub(fix_num_copy(fix_1), fix_4);
+
+        printf("\n\n");
+        printf("\n");fix_num_display(fix_2);
+        printf("\n");fix_num_display(fix_3);
+        printf("\n");fix_num_display(fix_4);
+    }
 
     printf("\n");
     return 0;
