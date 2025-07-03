@@ -137,7 +137,7 @@ fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
     float_num_t flt_2 = float_num_wrap(1, size);
     for(uint64_t i=1; i<i_0; i++)
     {
-        uint64_t index = 1 + layer_count * i;
+        uint64_t index = 1 + layer_count * (i - 1);
 
         sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
         sig_num_t sig_2 = sig_num_wrap((int64_t)8 * index);
