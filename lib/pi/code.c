@@ -110,7 +110,6 @@ handler_p thread_b(handler_p _args)
 STRUCT(thread_c_args)
 {
     uint64_t pos;
-    uint64_t layer_count;
     uint64_t i_0, i_max;
 
     junc_p junc_b_c;
@@ -122,7 +121,6 @@ handler_p thread_c(handler_p _args)
     thread_c_args_p args = _args;
 
     uint64_t pos = args->pos;
-    uint64_t layer_count = args->layer_count;
     uint64_t i_0 = args->i_0;
     uint64_t i_max = args->i_max;
 
@@ -131,7 +129,7 @@ handler_p thread_c(handler_p _args)
     fix_num_t fix_c = fix_num_wrap(0, pos);
     for(uint64_t i=i_0; i<i_max; i++)
     {
-        for(uint64_t j=0; j<layer_count; j++)
+        for(uint64_t j=0; j<junc_b_c->total; j++)
         {
             fix_num_t fix_b;
             junc_recv(junc_b_c, &fix_b, NULL);
@@ -261,15 +259,15 @@ group_p group_launch(
         {
             g->layers[i].args_b[j] = (thread_b_args_t)
             {
-                .layer_count = layer_count,
+                .layer_count = layer_count * layer_b_count,
                 .i_0 = i_0,
                 .i_max = i_max,
 
-                .id = i,
+                .id = i + layer_count * j,
                 .queue_a_b = &g->layers[i].junc_a_b.queues[j],
                 .queue_b_c = &g->junc_b_c.queues[i + layer_count * j]
             };
-            g->layers[i].tid_b[j] = pthread_create_treat(thread_b, &g->layers[i].args_b);
+            g->layers[i].tid_b[j] = pthread_create_treat(thread_b, &g->layers[i].args_b[j]);
         }
         pthread_lock(g->layers[i].tid_b[0], thread_0 + 2 * i + 1);
     }
@@ -277,7 +275,6 @@ group_p group_launch(
     g->args_c = (thread_c_args_t)
     {
         .pos = size - 1,
-        .layer_count = layer_count,
         .i_0 = i_0,
         .i_max = i_max,
 
@@ -300,7 +297,6 @@ fix_num_t group_join(group_p g)
         }
         
         pthread_join_treat(g->layers[i].tid_a);
-        
         for(uint64_t j=0; j<g->layers[i].layer_b_count; j++)
             pthread_join_treat(g->layers[i].tid_b[j]);
         
