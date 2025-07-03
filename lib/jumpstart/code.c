@@ -95,11 +95,10 @@ fix_num_t jumpstart_thread(
     uint64_t i_0,
     uint64_t size,
     uint64_t layer_count,
-    uint64_t thread_0
+    uint64_t thread_0,
+    uint64_t split
 )
 {
-    uint64_t split = 4;
-
     thread_mul_sig_args_t args_upper[split];
     thread_mul_sig_args_t args_lower[split];
     pthread_t tid_upper[split];

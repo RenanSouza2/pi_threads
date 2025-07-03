@@ -12,7 +12,8 @@ fix_num_t jumpstart_thread(
     uint64_t i_0,
     uint64_t size,
     uint64_t layer_count,
-    uint64_t thread_0
+    uint64_t thread_0,
+    uint64_t split
 );
 
 #endif

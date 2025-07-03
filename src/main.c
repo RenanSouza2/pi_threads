@@ -52,58 +52,41 @@ int main()
     //     assert(value < 2);
     // }
 
-    uint64_t layer_count = 3;
-    uint64_t n_max = 32 * size + 4;
-    uint64_t i_max = (n_max / layer_count) + 1;
-    uint64_t i = i_max / 2;
+    // uint64_t layer_count = 4;
 
-    // for(uint64_t i=3; i<i_max; i++)
+    printf("\n| layer\t|\t\tsplit\t\t|");
+    printf("\n|\t|--------------------------------");
+    printf("\n|\t| ");
+    for(uint64_t j=1; j <=8; j *= 2)
+        printf("%5lu\t| ", j);
+    printf("\n-----------------------------------------");
+
+    for(uint64_t i=1; i<20; i++)
     {
-        printf("\n\ni: %lu", i);
+        uint64_t n_max = 32 * size + 4;
+        uint64_t i_max = (n_max / i) + 1;
+        uint64_t i_0 = i_max / 2;
 
-        TIME_START
-        fix_num_t fix_1 = jumpstart_standard(i, size, 3);
-        TIME_END(time_1)
-        printf("\ntime_standard\t: %.2f", time_1 / 1e9);
-
-        TIME_START
-        fix_num_t fix_2 = jumpstart_div_during(i, size, 3);
-        TIME_END(time_2)
-        printf("\ntime_div\t: %.2f", time_2 / 1e9);
-
-        TIME_START
-        fix_num_t fix_3 = jumpstart_ass_1(i, size, 3);
-        TIME_END(time_3)
-        printf("\ntime_ass_1\t: %.2f", time_3 / 1e9);
-
-        TIME_START
-        fix_num_t fix_4 = jumpstart_ass_2(i, size, 3);
-        TIME_END(time_4)
-        printf("\ntime_ass_2\t: %.2f", time_4 / 1e9);
-
-        TIME_START
-        fix_num_t fix_5 = jumpstart_thread(i, size, layer_count, 0);
-        TIME_END(time_5)
-        printf("\ntime_thread\t: %.2f", time_5 / 1e9);
-
-        printf("\n\n");
-        printf("\n");fix_num_display(fix_1);
-        printf("\n");fix_num_display(fix_2);
-        printf("\n");fix_num_display(fix_3);
-        printf("\n");fix_num_display(fix_4);
-        printf("\n");fix_num_display(fix_5);
-
-        fix_2 = fix_num_sub(fix_num_copy(fix_1), fix_2);
-        fix_3 = fix_num_sub(fix_num_copy(fix_1), fix_3);
-        fix_4 = fix_num_sub(fix_num_copy(fix_1), fix_4);
-        fix_5 = fix_num_sub(fix_num_copy(fix_1), fix_5);
-
-        printf("\n\n");
-        printf("\n");fix_num_display(fix_2);
-        printf("\n");fix_num_display(fix_3);
-        printf("\n");fix_num_display(fix_4);
-        printf("\n");fix_num_display(fix_5);
+        printf("\n| %5lu\t|", i);
+        for(uint64_t j=1; j <=8; j *= 2)
+        {
+            TIME_START
+            jumpstart_thread(i_0, size, i, 0, j);
+            TIME_END(time_5)
+            printf(" %5.1f\t|", time_5 / 1e9);
+        }
     }
+
+    // uint64_t i=3;
+
+    // uint64_t n_max = 32 * size + 4;
+    // uint64_t i_max = (n_max / i) + 1;
+    // uint64_t i_0 = i_max / 2;
+    
+    // TIME_START
+    // jumpstart_ass_2(i_0, size, i);
+    // TIME_END(time_5)
+    // printf(" %5.1f\t|", time_5 / 1e9);
 
     printf("\n");
     return 0;
