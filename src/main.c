@@ -33,9 +33,9 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 1000;
+    uint64_t size = 2;
     fix_num_t fix_pi = pi_threads(size);
-    fix_num_display_dec(fix_pi);
+    printf("\n\n");fix_num_display_dec(fix_pi);
     fix_num_free(fix_pi);
 
     printf("\n");

@@ -93,10 +93,11 @@ fix_num_t jumpstart_thread(
     uint64_t size,
     uint64_t layer_count,
     uint64_t index_0,
-    uint64_t thread_0,
-    uint64_t split
+    uint64_t thread_0
 )
-{
+{    
+    uint64_t split = 2;
+
     thread_mul_sig_args_t args_upper[split];
     thread_mul_sig_args_t args_lower[split];
     pthread_t tid_upper[split];
@@ -106,7 +107,7 @@ fix_num_t jumpstart_thread(
         return fix_num_wrap(6, size - 1);
 
     assert(index_0 > 3);
-    uint64_t pos = size - index_0 / 32;
+    uint64_t pos = size + 1 - index_0 / 32;
 
     for(uint64_t i=0; i<split; i++)
     {

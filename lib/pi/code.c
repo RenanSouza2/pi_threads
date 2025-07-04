@@ -227,19 +227,19 @@ group_p group_launch(
     uint64_t layer_count,
     uint64_t layer_b_count,
     uint64_t index_0,
-    uint64_t i_max,
+    uint64_t index_max,
     uint64_t thread_0
 )
 {
     uint64_t queue_size = 5;
 
-    assert(i_max % layer_b_count == 0);
+    assert((index_max - index_0) % (layer_count * layer_b_count) == 0);
 
     group_p g = group_create(layer_count, layer_b_count);
     g->junc_b_c = junc_init(layer_count * layer_b_count, queue_size, sizeof(fix_num_t), pi_queue_res_free);
 
     fix_num_t a0[layer_count];
-    fix_num_t fix_a = jumpstart_thread(size, layer_count, index_0 - layer_count, thread_0, 2);
+    fix_num_t fix_a = jumpstart_thread(size, layer_count, index_0 - layer_count, thread_0);
     a0[0] = fix_num_copy(fix_a);
     for(uint64_t i=1; i<layer_count; i++)
     {
@@ -257,7 +257,7 @@ group_p group_launch(
         {
             .layer_count = layer_count,
             .index_0 = index_0,
-            .i_max = i_max,
+            .i_max = (index_max - index_0) / layer_count,
 
             .id = i,
             .junc_a_b = &g->layers[i].junc_a_b,
@@ -272,7 +272,7 @@ group_p group_launch(
             {
                 .layer_count = layer_count * layer_b_count,
                 .index_0 = index_0,
-                .i_max = i_max / layer_b_count,
+                .i_max = (index_max - index_0) / (layer_count * layer_b_count),
 
                 .id = i + layer_count * j,
                 .queue_a_b = &g->layers[i].junc_a_b.queues[j],
@@ -286,7 +286,7 @@ group_p group_launch(
     g->args_c = (thread_c_args_t)
     {
         .pos = size - 1,
-        .i_max = i_max / layer_b_count,
+        .i_max = (index_max - index_0) / (layer_count * layer_b_count),
 
         .junc_b_c = &g->junc_b_c,
 
@@ -324,12 +324,11 @@ fix_num_t group_join(group_p g)
 
 
 
-fix_num_t pi_0(uint64_t size, uint64_t layer_count)
+fix_num_t pi_0(uint64_t size, uint64_t index_max)
 {
-
     fix_num_t fix_a = fix_num_wrap(6, size - 1);
     fix_num_t fix_pi = fix_num_wrap(3, size - 1);
-    for(uint64_t i=1; i<layer_count; i++)
+    for(uint64_t i=1; i<index_max; i++)
     {
         fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3));
         fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i));
@@ -351,13 +350,12 @@ fix_num_t pi_threads(uint64_t size)
     uint64_t cut = 45;
 
     uint64_t index_max = 32 * size + 4;
-    uint64_t i_max = (index_max / layer_count) + 1;
-    uint64_t i_mid = cut * i_max / 100;
-    if(i_mid % layer_b_count)
-        i_mid += layer_b_count - i_mid % layer_b_count;
-    
-    group_p g_1 = group_launch(0, size, layer_count, layer_b_count, layer_count, i_mid, 0);
-    group_p g_2 = group_launch(1, size, layer_count, 1, layer_count * (i_mid + 1), i_max - i_mid, 8);
+    uint64_t index_mid = cut * index_max / 100;
+    index_mid -= (index_mid - layer_count) % (layer_count * layer_b_count);
+    index_max += layer_count - (index_max - index_mid) % layer_count;
+
+    group_p g_1 = group_launch(0, size, layer_count, layer_b_count, layer_count, index_mid, 0);
+    group_p g_2 = group_launch(1, size, layer_count, 1, index_mid, index_max, 8);
 
     fix_num_t fix_pi = pi_0(size, layer_count);
     fix_pi = fix_num_add(fix_pi, group_join(g_1));
