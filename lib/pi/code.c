@@ -45,10 +45,8 @@ handler_p thread_a(handler_p _args)
     junc_p junc_a_b = args->junc_a_b;
     fix_num_t fix_a = args->a0;
 
-    dbg("a %lu", id);
     for(uint64_t i=0; i<i_max; i++)
     {
-        dbg("i: %lu", i);
         uint64_t index = index_0 + layer_count * i + id;
 
         sig_num_t sig_1 = sig_num_wrap((int64_t)2 * index - 3);
@@ -94,10 +92,8 @@ handler_p thread_b(handler_p _args)
     queue_p queue_a_b = args->queue_a_b;
     queue_p queue_b_c = args->queue_b_c;
 
-    dbg("b %lu", id);
     for(uint64_t i=0; i<i_max; i++)
     {
-        dbg("i: %lu", i);
         uint64_t index = index_0 + layer_count * i + id;
 
         fix_num_t fix_a;
@@ -117,9 +113,11 @@ STRUCT(thread_c_args)
 {
     uint64_t pos;
     uint64_t i_max;
-
+    
     junc_p junc_b_c;
     fix_num_t res;
+
+    uint64_t g_id;
 };
 
 handler_p thread_c(handler_p _args)
@@ -131,11 +129,14 @@ handler_p thread_c(handler_p _args)
 
     junc_p junc_b_c = args->junc_b_c;
 
-    dbg("c");
+    // uint64_t g_id = args->g_id;
+
     fix_num_t fix_c = fix_num_wrap(0, pos);
     for(uint64_t i=0; i<i_max; i++)
     {
-        dbg("i: %lu", i);
+        if(i%1000 == 0)
+            fprintf(stderr, "\nprogess: %lu / %lu", i / 1000, i_max / 1000);
+
         for(uint64_t j=0; j<junc_b_c->total; j++)
         {
             fix_num_t fix_b;
@@ -221,6 +222,7 @@ void group_free(group_p g)
 }
 
 group_p group_launch(
+    uint64_t g_id,
     uint64_t size,
     uint64_t layer_count,
     uint64_t layer_b_count,
@@ -286,7 +288,9 @@ group_p group_launch(
         .pos = size - 1,
         .i_max = i_max / layer_b_count,
 
-        .junc_b_c = &g->junc_b_c
+        .junc_b_c = &g->junc_b_c,
+
+        .g_id = g_id
     };
     g->tid_c = pthread_create_treat(thread_c, &g->args_c);
     pthread_lock(g->tid_c, thread_0 + 6);
@@ -343,15 +347,17 @@ fix_num_t pi_0(uint64_t size, uint64_t layer_count)
 fix_num_t pi_threads(uint64_t size)
 {
     uint64_t layer_count = 3;
+    uint64_t layer_b_count = 2;
+    uint64_t cut = 45;
 
     uint64_t index_max = 32 * size + 4;
     uint64_t i_max = (index_max / layer_count) + 1;
-    uint64_t i_mid = i_max / 2;
-    i_mid += i_mid & 1;
-    // uint64_t i_mid = 10;
+    uint64_t i_mid = cut * i_max / 100;
+    if(i_mid % layer_b_count)
+        i_mid += layer_b_count - i_mid % layer_b_count;
     
-    group_p g_1 = group_launch(size, layer_count, 2, layer_count, i_mid, 0);
-    group_p g_2 = group_launch(size, layer_count, 1, layer_count * (i_mid + 1), i_max, 8);
+    group_p g_1 = group_launch(0, size, layer_count, layer_b_count, layer_count, i_mid, 0);
+    group_p g_2 = group_launch(1, size, layer_count, 1, layer_count * (i_mid + 1), i_max - i_mid, 8);
 
     fix_num_t fix_pi = pi_0(size, layer_count);
     fix_pi = fix_num_add(fix_pi, group_join(g_1));
