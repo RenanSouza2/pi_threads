@@ -36,7 +36,7 @@ int main()
     // fix_num_t fix_pi = pi_threads(3);
     // printf("\npi: ");fix_num_display_dec(fix_pi);
 
-    uint64_t size = 3;
+    uint64_t size = 1000;
     fix_num_t fix_1 = pi_threads(size);
     printf("\n");fix_num_display_dec(fix_1);
 

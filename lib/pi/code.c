@@ -344,14 +344,14 @@ fix_num_t pi_threads(uint64_t size)
 {
     uint64_t layer_count = 3;
 
-    uint64_t n_max = 32 * size + 4;
-    uint64_t i_max = (n_max / layer_count) + 1;
+    uint64_t index_max = 32 * size + 4;
+    uint64_t i_max = (index_max / layer_count) + 1;
     uint64_t i_mid = i_max / 2;
     i_mid += i_mid & 1;
     // uint64_t i_mid = 10;
     
     group_p g_1 = group_launch(size, layer_count, 2, layer_count, i_mid, 0);
-    group_p g_2 = group_launch(size, layer_count, 1, i_mid, i_max, 8);
+    group_p g_2 = group_launch(size, layer_count, 1, layer_count * (i_mid + 1), i_max, 8);
 
     fix_num_t fix_pi = pi_0(size, layer_count);
     fix_pi = fix_num_add(fix_pi, group_join(g_1));
