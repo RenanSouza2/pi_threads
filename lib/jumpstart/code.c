@@ -37,7 +37,7 @@ STRUCT(thread_mul_sig_args)
 {
     uint64_t size;
     uint64_t layer_count;
-    uint64_t i_0;
+    uint64_t index_0;
     uint64_t split;
     
     uint64_t id;
@@ -54,18 +54,16 @@ handler_p thread_mul_sig(handler_p _args)
     
     uint64_t size = args->size;
     uint64_t layer_count = args->layer_count;
-    uint64_t i_0 = args->i_0;
+    uint64_t index_0 = args->index_0;
     uint64_t split = args->split;
     
     uint64_t id = args->id;
     element_f element = args->element;
     pthread_t *tid = args->tid;
 
-    uint64_t n_max_0 = (i_0 - 1) * layer_count;
-    assert(n_max_0 > 3);
-    uint64_t n_max = n_max_0 / 2;
-    uint64_t i_max = (n_max + layer_count - 2) / layer_count;
-    uint64_t delta = (n_max_0 + 1) / 2;
+    uint64_t index_max = index_0 / 2;
+    uint64_t i_max = (index_max + layer_count - 2) / layer_count;
+    uint64_t delta = (index_0 + 1) / 2;
 
     float_num_t flt = float_num_wrap(1, size);
     for(uint64_t i=0 + id; i<i_max; i+=split)
@@ -73,7 +71,7 @@ handler_p thread_mul_sig(handler_p _args)
         uint64_t index = 2 + layer_count * i;
 
         sig_num_t sig = sig_num_wrap(element(index, delta));
-        for(uint64_t k=1; (k<layer_count) && index + k <= n_max; k++)
+        for(uint64_t k=1; (k<layer_count) && index + k <= index_max; k++)
             sig = sig_num_mul(sig, sig_num_wrap(element(index + k, delta)));
 
         flt = float_num_mul_sig(flt, sig);
@@ -92,9 +90,9 @@ handler_p thread_mul_sig(handler_p _args)
 }
 
 fix_num_t jumpstart_thread(
-    uint64_t i_0,
     uint64_t size,
     uint64_t layer_count,
+    uint64_t index_0,
     uint64_t thread_0,
     uint64_t split
 )
@@ -104,12 +102,11 @@ fix_num_t jumpstart_thread(
     pthread_t tid_upper[split];
     pthread_t tid_lower[split];
 
-    uint64_t n_max_0 = (i_0 - 1) * layer_count;
-    if(n_max_0 == 0)
+    if(index_0 == 0)
         return fix_num_wrap(6, size - 1);
 
-    assert(n_max_0 > 3);
-    uint64_t pos = size - n_max_0 / 32;
+    assert(index_0 > 3);
+    uint64_t pos = size - index_0 / 32;
     
     for(uint64_t i=0; i<split; i++)
     {
@@ -117,7 +114,7 @@ fix_num_t jumpstart_thread(
         {
             .size = pos,
             .layer_count = layer_count,
-            .i_0 = i_0,
+            .index_0 = index_0,
             .split = split,
             
             .id = i,
@@ -131,7 +128,7 @@ fix_num_t jumpstart_thread(
         {
             .size = pos,
             .layer_count = layer_count,
-            .i_0 = i_0,
+            .index_0 = index_0,
             .split = split,
             
             .id = i,
@@ -150,7 +147,7 @@ fix_num_t jumpstart_thread(
 
     pthread_join_treat(tid_upper[0]);
     float_num_t flt = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(-6));
-    flt = float_num_shr(flt, 7 * n_max_0 / 2);
+    flt = float_num_shr(flt, 7 * index_0 / 2);
     
     pthread_join_treat(tid_lower[0]);
     flt = float_num_div(flt, args_lower[0].flt);
@@ -163,6 +160,7 @@ fix_num_t jumpstart_thread(
 
 fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
 {
+
     float_num_t flt_1 = float_num_wrap(6, size);
     float_num_t flt_2 = float_num_wrap(1, size);
     for(uint64_t i=1; i<i_0; i++)
