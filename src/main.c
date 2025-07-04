@@ -33,8 +33,12 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    fix_num_t fix_pi = pi_threads(3);
-    printf("\npi: ");fix_num_display_dec(fix_pi);
+    // fix_num_t fix_pi = pi_threads(3);
+    // printf("\npi: ");fix_num_display_dec(fix_pi);
+
+    uint64_t size = 3;
+    fix_num_t fix_1 = pi_threads(size);
+    printf("\n");fix_num_display_dec(fix_1);
 
     printf("\n");
     return 0;

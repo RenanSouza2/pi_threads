@@ -39,7 +39,7 @@ STRUCT(thread_mul_sig_args)
     uint64_t layer_count;
     uint64_t index_0;
     uint64_t split;
-    
+
     uint64_t id;
     element_f element;
     pthread_t *tid;
@@ -51,12 +51,12 @@ STRUCT(thread_mul_sig_args)
 handler_p thread_mul_sig(handler_p _args)
 {
     thread_mul_sig_args_p args = (thread_mul_sig_args_p)_args;
-    
+
     uint64_t size = args->size;
     uint64_t layer_count = args->layer_count;
     uint64_t index_0 = args->index_0;
     uint64_t split = args->split;
-    
+
     uint64_t id = args->id;
     element_f element = args->element;
     pthread_t *tid = args->tid;
@@ -85,7 +85,7 @@ handler_p thread_mul_sig(handler_p _args)
         flt = float_num_mul(flt, args[mask].flt);
     }
 
-    args->flt = flt;  
+    args->flt = flt; 
     return &args->flt;
 }
 
@@ -107,7 +107,7 @@ fix_num_t jumpstart_thread(
 
     assert(index_0 > 3);
     uint64_t pos = size - index_0 / 32;
-    
+
     for(uint64_t i=0; i<split; i++)
     {
         args_upper[i] = (thread_mul_sig_args_t)
@@ -116,21 +116,21 @@ fix_num_t jumpstart_thread(
             .layer_count = layer_count,
             .index_0 = index_0,
             .split = split,
-            
+
             .id = i,
             .element = element_upper,
             .tid = tid_upper,
         };
         tid_upper[i] = pthread_create_treat(thread_mul_sig, &args_upper[i]);
         pthread_lock(tid_upper[i], thread_0 + i);
-        
+
         args_lower[i] = (thread_mul_sig_args_t)
         {
             .size = pos,
             .layer_count = layer_count,
             .index_0 = index_0,
             .split = split,
-            
+
             .id = i,
             .element = element_lower,
             .tid = tid_lower,
@@ -148,22 +148,23 @@ fix_num_t jumpstart_thread(
     pthread_join_treat(tid_upper[0]);
     float_num_t flt = float_num_mul_sig(args_upper[0].flt, sig_num_wrap(-6));
     flt = float_num_shr(flt, 7 * index_0 / 2);
-    
+
     pthread_join_treat(tid_lower[0]);
     flt = float_num_div(flt, args_lower[0].flt);
 
-    return fix_num_wrap_float(flt, size); 
+    return fix_num_wrap_float(flt, size);
 }
 
 
 
-
-fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_standard(uint64_t index_max, uint64_t size, uint64_t layer_count)
 {
+    assert(index_max % layer_count == 0);
 
+    uint64_t i_max = index_max / layer_count;
     float_num_t flt_1 = float_num_wrap(6, size);
     float_num_t flt_2 = float_num_wrap(1, size);
-    for(uint64_t i=1; i<i_0; i++)
+    for(uint64_t i=1; i<i_max; i++)
     {
         uint64_t index = 1 + layer_count * (i - 1);
 
@@ -182,10 +183,13 @@ fix_num_t jumpstart_standard(uint64_t i_0, uint64_t size, uint64_t layer_count)
     return fix_num_wrap_float(flt_1, size);
 }
 
-fix_num_t jumpstart_div_during(uint64_t i_0, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_div_during(uint64_t index_max, uint64_t size, uint64_t layer_count)
 {
+    assert(index_max % layer_count == 0);
+
+    uint64_t i_max = index_max / layer_count;
     float_num_t flt = float_num_wrap(6, size);
-    for(uint64_t i=1; i<i_0; i++)
+    for(uint64_t i=1; i<i_max; i++)
     {
         uint64_t index = layer_count * i;
 
@@ -203,13 +207,12 @@ fix_num_t jumpstart_div_during(uint64_t i_0, uint64_t size, uint64_t layer_count
     return fix_num_wrap_float(flt, size);
 }
 
-fix_num_t jumpstart_ass_1(uint64_t i_0, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_ass_1(uint64_t index_max, uint64_t size, uint64_t layer_count)
 {
-    uint64_t n_max_0 = (i_0 - 1) * layer_count;
-    assert(n_max_0 > 3);
-    uint64_t n_max = n_max_0 / 2;
-    uint64_t i_max = (n_max + layer_count - 2) / layer_count;
-    uint64_t delta = (n_max_0 + 1) / 2;
+    assert(index_max > 3);
+    uint64_t index_max_prod = index_max / 2;
+    uint64_t i_max = (index_max_prod + layer_count - 2) / layer_count;
+    uint64_t delta = (index_max + 1) / 2;
 
     float_num_t flt_1 = float_num_wrap(-6, size);
     float_num_t flt_2 = float_num_wrap( 1, size);
@@ -219,7 +222,7 @@ fix_num_t jumpstart_ass_1(uint64_t i_0, uint64_t size, uint64_t layer_count)
 
         sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3);
         sig_num_t sig_2 = sig_num_wrap(index);
-        for(uint64_t k=1; (k<layer_count) && index + k <= n_max; k++)
+        for(uint64_t k=1; (k<layer_count) && index + k <= index_max_prod; k++)
         {
             sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3));
             sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k));
@@ -228,20 +231,19 @@ fix_num_t jumpstart_ass_1(uint64_t i_0, uint64_t size, uint64_t layer_count)
         flt_1 = float_num_mul_sig(flt_1, sig_1);
         flt_2 = float_num_mul_sig(flt_2, sig_2);
     }
-    flt_1 = float_num_shr(flt_1, 7 * n_max_0 / 2);
+    flt_1 = float_num_shr(flt_1, 7 * index_max / 2);
     flt_1 = float_num_div(flt_1, flt_2);
     return fix_num_wrap_float(flt_1, size);
 }
 
 
-fix_num_t jumpstart_ass_2(uint64_t i_0, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_ass_2(uint64_t index_max, uint64_t size, uint64_t layer_count)
 {
-    uint64_t n_max_0 = (i_0 - 1) * layer_count;
-    assert(n_max_0 > 3);
-    uint64_t n_max = n_max_0 / 2;
-    uint64_t i_max = (n_max + layer_count - 2) / layer_count;
-    uint64_t delta = (n_max_0 + 1) / 2;
-    uint64_t pos = size - n_max_0 / 32;
+    assert(index_max > 3);
+    uint64_t index_max_prod = index_max / 2;
+    uint64_t i_max = (index_max_prod + layer_count - 2) / layer_count;
+    uint64_t delta = (index_max + 1) / 2;
+    uint64_t pos = size - index_max / 32;
 
     float_num_t flt_1 = float_num_wrap(-6, pos);
     float_num_t flt_2 = float_num_wrap( 1, pos);
@@ -251,7 +253,7 @@ fix_num_t jumpstart_ass_2(uint64_t i_0, uint64_t size, uint64_t layer_count)
 
         sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3);
         sig_num_t sig_2 = sig_num_wrap(index);
-        for(uint64_t k=1; (k<layer_count) && index + k <= n_max; k++)
+        for(uint64_t k=1; (k<layer_count) && index + k <= index_max_prod; k++)
         {
             sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3));
             sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k));
@@ -260,7 +262,7 @@ fix_num_t jumpstart_ass_2(uint64_t i_0, uint64_t size, uint64_t layer_count)
         flt_1 = float_num_mul_sig(flt_1, sig_1);
         flt_2 = float_num_mul_sig(flt_2, sig_2);
     }
-    flt_1 = float_num_shr(flt_1, 7 * n_max_0 / 2);
+    flt_1 = float_num_shr(flt_1, 7 * index_max / 2);
     flt_1 = float_num_div(flt_1, flt_2);
     return fix_num_wrap_float(flt_1, size);
 }
