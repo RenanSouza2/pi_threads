@@ -240,11 +240,14 @@ fix_num_t jumpstart_ass_1(uint64_t index_max, uint64_t size, uint64_t layer_coun
 
 fix_num_t jumpstart_ass_2(uint64_t index_max, uint64_t size, uint64_t layer_count)
 {
+    if(index_max == 0)
+        return fix_num_wrap(6, size - 1);
+
     assert(index_max > 3);
     uint64_t index_max_prod = index_max / 2;
     uint64_t i_max = (index_max_prod + layer_count - 2) / layer_count;
     uint64_t delta = (index_max + 1) / 2;
-    uint64_t pos = size - index_max / 32;
+    uint64_t pos = size + 2 - index_max / 32;
 
     float_num_t flt_1 = float_num_wrap(-6, pos);
     float_num_t flt_2 = float_num_wrap( 1, pos);
