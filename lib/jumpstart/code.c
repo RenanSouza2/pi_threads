@@ -16,8 +16,6 @@
 #ifdef DEBUG
 #endif
 
-#include <unistd.h>
-
 
 
 int64_t element_upper(int64_t index, uint64_t delta)
@@ -238,8 +236,10 @@ fix_num_t jumpstart_ass_1(uint64_t index_max, uint64_t size, uint64_t layer_coun
 }
 
 
-fix_num_t jumpstart_ass_2(uint64_t index_max, uint64_t size, uint64_t layer_count)
+fix_num_t jumpstart_ass_2(uint64_t index_max, uint64_t size)
 {
+    uint64_t layer_count = 3;
+
     if(index_max == 0)
         return fix_num_wrap(6, size - 1);
 
