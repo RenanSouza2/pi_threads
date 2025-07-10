@@ -24,12 +24,12 @@
 
 
 
-fix_num_t jumpstart(uint64_t index_max, uint64_t size, pool_p p)
+fix_num_t jumpstart(uint64_t index_max, uint64_t size)
 {
     uint64_t layer_count = 3;
 
     if(index_max == 0)
-        return fix_num_wrap(6, size - 1, p);
+        return fix_num_wrap(6, size - 1);
 
     assert(index_max > 3);
     uint64_t index_max_prod = index_max / 2;
@@ -38,25 +38,25 @@ fix_num_t jumpstart(uint64_t index_max, uint64_t size, pool_p p)
     uint64_t pos = size - index_max / 32;
     if(pos > size + 2) pos = 2;
 
-    float_num_t flt_1 = float_num_wrap(-6, pos, p);
-    float_num_t flt_2 = float_num_wrap( 1, pos, p);
+    float_num_t flt_1 = float_num_wrap(-6, pos);
+    float_num_t flt_2 = float_num_wrap( 1, pos);
     for(uint64_t i=0; i<i_max; i++)
     {
         uint64_t index = 2 + layer_count * i;
 
-        sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3, p);
-        sig_num_t sig_2 = sig_num_wrap(index, p);
+        sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3);
+        sig_num_t sig_2 = sig_num_wrap(index);
         for(uint64_t k=1; (k<layer_count) && index + k <= index_max_prod; k++)
         {
-            sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3, p), p);
-            sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k, p), p);
+            sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3));
+            sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k));
         }
 
-        flt_1 = float_num_mul_sig(flt_1, sig_1, p);
-        flt_2 = float_num_mul_sig(flt_2, sig_2, p);
+        flt_1 = float_num_mul_sig(flt_1, sig_1);
+        flt_2 = float_num_mul_sig(flt_2, sig_2);
     }
     flt_1 = float_num_shr(flt_1, 7 * index_max / 2);
-    flt_1 = float_num_div(flt_1, flt_2, p);
+    flt_1 = float_num_div(flt_1, flt_2);
     return fix_num_wrap_float(flt_1, size);
 }
 
@@ -83,20 +83,18 @@ handler_p thread_pi(handler_p _args)
     TIME_SETUP
     TIME_START
 
-    pool_p p = pool_create(2 * size);
-
-    fix_num_t fix_a = jumpstart(index_0 - 1, size, p);
-    fix_num_t fix_res = fix_num_wrap(0, size - 1, p);
+    fix_num_t fix_a = jumpstart(index_0 - 1, size);
+    fix_num_t fix_res = fix_num_wrap(0, size - 1);
     for(uint64_t i=index_0; i<index_max; i++)
     {
-        fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3, p), p);
-        fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i, p), p);
+        fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3));
+        fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i));
 
-        fix_num_t fix_b = fix_num_copy(fix_a, p);
-        fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i, p), p);
-        fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2, p), p);
+        fix_num_t fix_b = fix_num_copy(fix_a);
+        fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i));
+        fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2));
 
-        fix_res = fix_num_add(fix_res, fix_b, p);
+        fix_res = fix_num_add(fix_res, fix_b);
 
         if(i%1000 == 0 && index_0 == 1)
         {
@@ -105,7 +103,7 @@ handler_p thread_pi(handler_p _args)
             TIME_START
         }
     }
-    fix_num_free(fix_a, p);
+    fix_num_free(fix_a);
 
     args->fix_res = fix_res;
     return NULL;
@@ -140,11 +138,11 @@ fix_num_t pi_threads(uint64_t size, uint64_t thread_count)
         pthread_lock(tid[i], i);
     }
 
-    fix_num_t fix_pi = fix_num_wrap(3, size - 1, NULL);
+    fix_num_t fix_pi = fix_num_wrap(3, size - 1);
     for(uint64_t i=4; i<5; i++)
     {
         pthread_join_treat(tid[i]);
-        fix_pi = fix_num_add(fix_pi, args[i].fix_res, NULL);
+        fix_pi = fix_num_add(fix_pi, args[i].fix_res);
     }
 
     return fix_pi;
