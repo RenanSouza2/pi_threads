@@ -1,7 +1,6 @@
 #include <stdio.h>
 
 #include "../mods/clu/header.h"
-#include "../mods/clu/header.h"
 #include "../mods/macros/assert.h"
 #include "../mods/macros/time.h"
 #include "../mods/number/lib/sig/header.h"
@@ -17,9 +16,9 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    clu_set_log(true);
+    // clu_log_enable(true);
 
-    uint64_t size = 2;
+    uint64_t size = 10000;
     uint64_t i=16;
     // for(uint64_t i=1; i<=16; i++)
     // {
@@ -47,3 +46,5 @@ int main()
     printf("\n");
     return 0;
 }
+
+// 16, 7.92, 126.66

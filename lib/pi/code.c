@@ -15,8 +15,6 @@
 #include "../../mods/number/lib/num/header.h"
 // #include "../../mods/number/lib/num/struct.h"
 
-#include "../junc/header.h"
-#include "../queue/header.h"
 #include "../pear/header.h"
 
 
@@ -37,7 +35,7 @@ fix_num_t jumpstart(uint64_t index_max, uint64_t size, pool_p p)
     uint64_t index_max_prod = index_max / 2;
     uint64_t i_max = (index_max_prod + layer_count - 2) / layer_count;
     uint64_t delta = (index_max + 1) / 2;
-    uint64_t pos = size + 2 - index_max / 32;
+    uint64_t pos = size - index_max / 32;
     if(pos > size + 2) pos = 2;
 
     float_num_t flt_1 = float_num_wrap(-6, pos, p);
@@ -93,17 +91,17 @@ handler_p thread_pi(handler_p _args)
     {
         fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3, p), p);
         fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i, p), p);
-        
+
         fix_num_t fix_b = fix_num_copy(fix_a, p);
         fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i, p), p);
         fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2, p), p);
-        
+
         fix_res = fix_num_add(fix_res, fix_b, p);
 
         if(i%1000 == 0 && index_0 == 1)
         {
             TIME_END(t)
-            printf("\n%lu,\t%.3f", i, t/1e9);    
+            printf("\n%lu,\t%.3f", i, t/1e9);
             TIME_START
         }
     }
