@@ -65,7 +65,6 @@ fix_num_t jumpstart(uint64_t index_max, uint64_t size)
 STRUCT(thread_pi_args)
 {
     uint64_t size;
-    // uint64_t id;
     uint64_t index_0;
     uint64_t index_max;
     fix_num_t fix_res;
@@ -76,12 +75,8 @@ handler_p thread_pi(handler_p _args)
     thread_pi_args_p args = (thread_pi_args_p)_args;
 
     uint64_t size = args->size;
-    // uint64_t id = args->id;
     uint64_t index_0 = args->index_0;
     uint64_t index_max = args->index_max;
-
-    TIME_SETUP
-    TIME_START
 
     fix_num_t fix_a = jumpstart(index_0 - 1, size);
     fix_num_t fix_res = fix_num_wrap(0, size - 1);
@@ -97,11 +92,7 @@ handler_p thread_pi(handler_p _args)
         fix_res = fix_num_add(fix_res, fix_b);
 
         if(i%1000 == 0 && index_0 == 1)
-        {
-            TIME_END(t)
-            printf("\n%lu,\t%.3f", i, t/1e9);
-            TIME_START
-        }
+            fprintf(stderr, "\n%lu / %lu", i / 1000, index_max / 1000);
     }
     fix_num_free(fix_a);
 
@@ -111,22 +102,47 @@ handler_p thread_pi(handler_p _args)
 
 fix_num_t pi_threads(uint64_t size, uint64_t thread_count)
 {
-    // uint64_t thread_count = 15;
     thread_pi_args_t args[thread_count];
     pthread_t tid[thread_count];
 
     uint64_t index_max = 32 * size + 4;
     uint64_t index[thread_count + 1];
+
+    double_t tmp[thread_count + 1];
+    for(uint64_t i=0; i<thread_count; i++)
+    {
+        double gamma = 0.5;
+        double y = (double)i / thread_count;
+        tmp[i] = 1 - pow(1.0 - y, gamma);
+    }
+    tmp[thread_count] = 1;
+
+    for(uint64_t i=0; i<thread_count; i++)
+        tmp[i] = tmp[i+1] - tmp[i];
+
+    for(uint64_t i=0; i<thread_count/4; i++)
+        tmp[i] *= 2 / (1 +  (double)i / thread_count);
+
+    double total = 0;
+    for(uint64_t i=0; i<thread_count; i++)
+        total += tmp[i];
+
+    double cum = 0;
+    for(uint64_t i=0; i<=thread_count; i++)
+    {
+        double delta = tmp[i];
+        tmp[i] = cum / total;
+        cum += delta;
+    }
+
     index[0] = 1;
     for(uint64_t i=1; i<thread_count; i++)
     {
-        double y = i * 1.5 / thread_count;
-        double x = y < 1 ? y : 2 - sqrt(3 - 2 * y);
-        index[i] = index_max * x / 2;
+        index[i] = index_max * tmp[i];
     }
     index[thread_count] = index_max;
 
-    for(uint64_t i=4; i<5; i++)
+    for(uint64_t i=0; i<thread_count; i++)
     {
         args[i] = (thread_pi_args_t)
         {
@@ -135,11 +151,11 @@ fix_num_t pi_threads(uint64_t size, uint64_t thread_count)
             .index_max = index[i+1]
         };
         tid[i] = pthread_create_treat(thread_pi, &args[i]);
-        pthread_lock(tid[i], i);
+        pthread_lock(tid[i], 8 + i);
     }
 
     fix_num_t fix_pi = fix_num_wrap(3, size - 1);
-    for(uint64_t i=4; i<5; i++)
+    for(uint64_t i=0; i<thread_count; i++)
     {
         pthread_join_treat(tid[i]);
         fix_pi = fix_num_add(fix_pi, args[i].fix_res);
