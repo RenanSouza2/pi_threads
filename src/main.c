@@ -5,6 +5,7 @@
 // #include "../mods/macros/time.h"
 
 #include "../lib/pi/header.h"
+#include "../lib/linear/header.h"
 
 
 
@@ -13,8 +14,8 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 5000;
-    fix_num_t fix_pi = pi_threads(size, 8);
+    uint64_t size = 100;
+    fix_num_t fix_pi = pi_v1(size);
 
     printf("\n\n");
     fix_num_display_dec(fix_pi);
