@@ -4,5 +4,6 @@
 #include "../../mods/number/lib/fix/header.h"
 
 fix_num_t pi_v1(uint64_t size);
+fix_num_t pi_v2(uint64_t size);
 
 #endif

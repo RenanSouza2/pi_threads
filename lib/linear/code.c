@@ -5,6 +5,7 @@
 #include "../../mods/clu/header.h"
 #include "../../mods/macros/assert.h"
 #include "../../mods/macros/U64.h"
+#include "../../mods/number/lib/sig/header.h"
 
 
 
@@ -46,6 +47,28 @@ fix_num_t pi_v1(uint64_t size)
     fix_num_free(fix_b);
     fix_num_free(fix_1);
     fix_num_free(fix_m_1_2);
+
+    return fix_pi;
+}
+
+fix_num_t pi_v2(uint64_t size)
+{
+    uint64_t index_max = 32 * size + 4;
+
+    fix_num_t fix_a = fix_num_wrap(6, size);
+    fix_num_t fix_pi = fix_num_wrap(3, size);
+    for(uint64_t i=1; i<index_max; i++)
+    {
+        fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3));
+        fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i));
+
+        fix_num_t fix_b = fix_num_copy(fix_a);
+        fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i));
+        fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2));
+
+        fix_pi = fix_num_add(fix_pi, fix_b);
+    }
+    fix_num_free(fix_a);
 
     return fix_pi;
 }
