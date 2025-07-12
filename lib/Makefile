@@ -1,4 +1,4 @@
-FLAGS = 
+FLAGS = -lm
 
 DIRS := $(wildcard */.)
 
