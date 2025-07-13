@@ -21,13 +21,18 @@ int main()
     // TIME_END(t2)
     // printf("\nt2: %.2f", t2/1e9);
 
-    for(uint64_t i=100; i <= 2000; i+=100)
+    // uint64_t i = 2000;
+    for(uint64_t i=100; i <= 5000; i+=100)
     {
         TIME_SETUP
-        pi_v3(i);
+        float_num_t flt = pi_v3(i);
         TIME_END(t3)
         printf("\n%lu,  %.2f", i, t3/1e9);
+        float_num_free(flt);
     }
+
+    // printf("\n\n");float_num_display_dec(flt);
+    // float_num_free(flt);
 
     printf("\n");
     return 0;

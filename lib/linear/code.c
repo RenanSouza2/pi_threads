@@ -7,6 +7,7 @@
 #include "../../mods/macros/U64.h"
 #include "../../mods/number/lib/float/header.h"
 #include "../../mods/number/lib/sig/header.h"
+#include "../../mods/number/lib/num/struct.h"
 
 
 
@@ -77,62 +78,279 @@ fix_num_t pi_v2(uint64_t size)
 
 
 
-// out vector length 4, returns P, Q, V, R in that order
-void binomial_spliting(float_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
-{
-    // if(i_max - i_0 > 100) printf("\ni_0: %lu\t\ti_max: %lu", i_0, i_max);
+#define SIG 0
+#define FLOAT 1
 
+STRUCT(union_num)
+{
+    uint64_t type;
+    uint64_t size;
+    union
+    {
+        sig_num_t sig;
+        float_num_t flt;
+    } num;
+};
+
+union_num_t union_num_wrap_float(float_num_t flt, uint64_t size)
+{
+    return (union_num_t)
+    {
+        .type = FLOAT,
+        .size = size,
+        .num = {.flt = flt}
+    };
+}
+
+union_num_t union_num_wrap_sig(sig_num_t sig, uint64_t size)
+{
+    if(sig.num->count >= size)
+    {
+        float_num_t flt = float_num_wrap_sig(sig, size);
+        return union_num_wrap_float(flt, size);
+    }
+
+    return (union_num_t)
+    {
+        .type = SIG,
+        .size = size,
+        .num = {.sig = sig}
+    };
+}
+
+float_num_t union_num_unwrap_float(union_num_t u)
+{
+    switch (u.type)
+    {
+        case SIG: return float_num_wrap_sig(u.num.sig, u.size);
+        case FLOAT: return u.num.flt;
+    }
+
+    exit(EXIT_FAILURE);
+}
+
+union_num_t union_num_copy(union_num_t u)
+{
+    
+    switch (u.type)
+    {
+        case SIG:
+        {
+            sig_num_t sig = sig_num_copy(u.num.sig);
+            return union_num_wrap_sig(sig, u.size);
+        }
+        break;
+
+        case FLOAT:
+        {
+            float_num_t flt = float_num_copy(u.num.flt);
+            return union_num_wrap_float(flt, u.size);
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+void union_num_free(union_num_t u)
+{
+    
+    switch (u.type)
+    {
+        case SIG:
+        {
+            sig_num_free(u.num.sig);
+            return;
+        }
+        break;
+
+        case FLOAT:
+        {
+            float_num_free(u.num.flt);
+            return;
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+
+union_num_t union_num_mul(union_num_t u_1, union_num_t u_2)
+{
+    switch (u_1.type)
+    {
+        case SIG:
+        {
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    sig_num_t sig = sig_num_mul(u_1.num.sig, u_2.num.sig);
+                    return union_num_wrap_sig(sig, u_1.size);
+                }
+                break;
+
+                case FLOAT:
+                {
+                    float_num_t flt = float_num_mul_sig(u_2.num.flt, u_1.num.sig);
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+            }
+        }
+        break;
+
+        case FLOAT:
+        {
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    float_num_t flt = float_num_mul_sig(u_1.num.flt, u_2.num.sig);
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+
+                case FLOAT:
+                {
+                    float_num_t flt = float_num_mul(u_1.num.flt, u_2.num.flt);
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+            }
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+union_num_t union_num_add(union_num_t u_1, union_num_t u_2)
+{
+    switch (u_1.type)
+    {
+        case SIG:
+        {
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    sig_num_t sig = sig_num_add(u_1.num.sig, u_2.num.sig);
+                    return union_num_wrap_sig(sig, u_1.size);
+                }
+                break;
+
+                case FLOAT:
+                {
+                    float_num_t flt = float_num_add(float_num_wrap_sig(u_1.num.sig, u_1.size), u_2.num.flt);
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+            }
+        }
+        break;
+
+        case FLOAT:
+        {
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    float_num_t flt = float_num_add(u_1.num.flt, float_num_wrap_sig(u_2.num.sig, u_1.size));
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+
+                case FLOAT:
+                {
+                    float_num_t flt = float_num_add(u_1.num.flt, u_2.num.flt);
+                    return union_num_wrap_float(flt, u_1.size);
+                }
+                break;
+            }
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+void union_num_display(union_num_t u)
+{
+    switch (u.type)
+    {
+        case SIG:
+        {
+            printf("SIG | ");sig_num_display_dec(u.num.sig);
+            return;
+        }
+        break;
+
+        case FLOAT:
+        {
+            printf("FLT | ");float_num_display_dec(u.num.flt);
+            return;
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+
+
+
+// out vector length 4, returns P, Q, V, R in that order
+void binary_splitting(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
+{
     assert(i_0 <= i_max);
     if(i_0 == i_max)
     {
-        float_num_t flt_p = float_num_wrap((int64_t)2 * i_0 - 3, size);
-        float_num_t flt_v = float_num_wrap((int64_t)4 * i_0 + 2, size);
-        float_num_t flt_q = float_num_mul(
-            float_num_copy(flt_v),
-            float_num_wrap((int64_t)8 * i_0, size)
+        sig_num_t flt_p = sig_num_wrap((int64_t)2 * i_0 - 3);
+        sig_num_t flt_v = sig_num_wrap((int64_t)4 * i_0 + 2);
+        sig_num_t flt_q = sig_num_mul(
+            sig_num_copy(flt_v),
+            sig_num_wrap((int64_t)8 * i_0)
         );
-        float_num_t flt_r = float_num_mul(
-            float_num_copy(flt_p),
-            float_num_wrap((int64_t)1 - 2 * i_0, size)
+        sig_num_t flt_r = sig_num_mul(
+            sig_num_copy(flt_p),
+            sig_num_wrap((int64_t)1 - 2 * i_0)
         );
 
-        out[0] = flt_p;
-        out[1] = flt_q;
-        out[2] = flt_v;
-        out[3] = flt_r;
+        out[0] = union_num_wrap_sig(flt_p, size);
+        out[1] = union_num_wrap_sig(flt_q, size);
+        out[2] = union_num_wrap_sig(flt_v, size);
+        out[3] = union_num_wrap_sig(flt_r, size);
         return;
     }
 
     uint64_t i_half = (i_0 + i_max) / 2;
-    float_num_t res_1[4], res_2[4];
-    binomial_spliting(res_1, size, i_0, i_half);
-    binomial_spliting(res_2, size, i_half + 1, i_max);
+    union_num_t res_1[4], res_2[4];
+    binary_splitting(res_1, size, i_0       , i_half);
+    binary_splitting(res_2, size, i_half + 1, i_max);
 
-    float_num_t flt_r_1 = res_1[3];
-    flt_r_1 = float_num_mul(flt_r_1, float_num_copy(res_2[1]));
+    union_num_t u_r_1 = res_1[3];
+    u_r_1 = union_num_mul(u_r_1, union_num_copy(res_2[1]));
     
-    float_num_t flt_r_2 = res_2[3];
-    flt_r_2 = float_num_mul(flt_r_2, float_num_copy(res_1[0]));
-    flt_r_2 = float_num_mul(flt_r_2, float_num_copy(res_1[2]));
+    union_num_t flt_r_2 = res_2[3];
+    flt_r_2 = union_num_mul(flt_r_2, union_num_copy(res_1[0]));
+    flt_r_2 = union_num_mul(flt_r_2, union_num_copy(res_1[2]));
 
     for(uint64_t i=0; i<3; i++)
-        out[i] = float_num_mul(res_1[i], res_2[i]);
+        out[i] = union_num_mul(res_1[i], res_2[i]);
 
-    out[3] = float_num_add(flt_r_1, flt_r_2);
+    out[3] = union_num_add(u_r_1, flt_r_2);
+    return;
 }
 
 float_num_t pi_v3(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
 
-    float_num_t res[4];
-    binomial_spliting(res, size, 1, index_max);
-    float_num_free(res[0]);
-    float_num_free(res[2]);
+    union_num_t res[4];
+    binary_splitting(res, size, 1, index_max);
+    union_num_free(res[0]);
+    union_num_free(res[2]);
 
-    float_num_t flt_pi = res[3];
+    float_num_t flt_pi = union_num_unwrap_float(res[3]);
     flt_pi = float_num_mul_sig(flt_pi, sig_num_wrap(6));
-    flt_pi = float_num_div(flt_pi, res[1]);
+    flt_pi = float_num_div(flt_pi, union_num_unwrap_float(res[1]));
     flt_pi = float_num_add(flt_pi, float_num_wrap(3, size));
     return flt_pi;
 }
