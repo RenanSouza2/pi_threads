@@ -7,6 +7,7 @@
 #include "../../mods/macros/U64.h"
 #include "../../mods/number/lib/float/header.h"
 #include "../../mods/number/lib/sig/header.h"
+#include "../../mods/number/lib/num/header.h"
 #include "../../mods/number/lib/num/struct.h"
 
 
@@ -296,46 +297,42 @@ void union_num_display(union_num_t u)
 
 
 
-// out vector length 4, returns P, Q, V, R in that order
+// out vector length 3, returns P, Q, R in that order
 void binary_splitting(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
 {
+    // printf("\ni_0: %lu\t\ti_max: %lu", i_0, i_max);
+
     assert(i_0 <= i_max);
     if(i_0 == i_max)
     {
-        sig_num_t flt_p = sig_num_wrap((int64_t)2 * i_0 - 3);
-        sig_num_t flt_v = sig_num_wrap((int64_t)4 * i_0 + 2);
-        sig_num_t flt_q = sig_num_mul(
-            sig_num_copy(flt_v),
-            sig_num_wrap((int64_t)8 * i_0)
-        );
-        sig_num_t flt_r = sig_num_mul(
-            sig_num_copy(flt_p),
-            sig_num_wrap((int64_t)1 - 2 * i_0)
-        );
+        int64_t p = 2 * i_0 - 3;
+        int64_t q = 8 * i_0;
+        int64_t u = 1 - 2 * i_0;
+        int64_t v = 4 * i_0 + 2;
 
-        out[0] = union_num_wrap_sig(flt_p, size);
-        out[1] = union_num_wrap_sig(flt_q, size);
-        out[2] = union_num_wrap_sig(flt_v, size);
-        out[3] = union_num_wrap_sig(flt_r, size);
+        sig_num_t sig_p = sig_num_wrap(p * v);
+        sig_num_t sig_q = sig_num_wrap(q * v);
+        sig_num_t sig_r = sig_num_wrap(p * u);
+
+        out[0] = union_num_wrap_sig(sig_p, size);
+        out[1] = union_num_wrap_sig(sig_q, size);
+        out[2] = union_num_wrap_sig(sig_r, size);
         return;
     }
 
     uint64_t i_half = (i_0 + i_max) / 2;
-    union_num_t res_1[4], res_2[4];
+    union_num_t res_1[3], res_2[3];
     binary_splitting(res_1, size, i_0       , i_half);
     binary_splitting(res_2, size, i_half + 1, i_max);
 
-    union_num_t u_r_1 = res_1[3];
-    u_r_1 = union_num_mul(u_r_1, union_num_copy(res_2[1]));
-    
-    union_num_t flt_r_2 = res_2[3];
-    flt_r_2 = union_num_mul(flt_r_2, union_num_copy(res_1[0]));
-    flt_r_2 = union_num_mul(flt_r_2, union_num_copy(res_1[2]));
+    union_num_t u_r_1 = union_num_mul(res_1[2], union_num_copy(res_2[1]));
+    union_num_t u_r_2 = union_num_mul(res_2[2], union_num_copy(res_1[0]));
 
-    for(uint64_t i=0; i<3; i++)
+    for(uint64_t i=0; i<2; i++)
         out[i] = union_num_mul(res_1[i], res_2[i]);
 
-    out[3] = union_num_add(u_r_1, flt_r_2);
+    out[2] = union_num_add(u_r_1, u_r_2);
+
     return;
 }
 
@@ -343,12 +340,11 @@ float_num_t pi_v3(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
 
-    union_num_t res[4];
+    union_num_t res[3];
     binary_splitting(res, size, 1, index_max);
     union_num_free(res[0]);
-    union_num_free(res[2]);
 
-    float_num_t flt_pi = union_num_unwrap_float(res[3]);
+    float_num_t flt_pi = union_num_unwrap_float(res[2]);
     flt_pi = float_num_mul_sig(flt_pi, sig_num_wrap(6));
     flt_pi = float_num_div(flt_pi, union_num_unwrap_float(res[1]));
     flt_pi = float_num_add(flt_pi, float_num_wrap(3, size));
