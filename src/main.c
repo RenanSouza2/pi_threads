@@ -14,7 +14,7 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    // uint64_t size = 10;
+    // uint64_t size = 2;
 
     // TIME_SETUP
     // pi_v2(size);
