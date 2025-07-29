@@ -7,10 +7,11 @@
 #include "../../mods/clu/header.h"
 #include "../../mods/macros/assert.h"
 // #include "../../mods/macros/time.h"
-#include "../../mods/macros/U64.h"
+#include "../../mods/macros/uint.h"
 #include "../../mods/number/lib/sig/header.h"
 
 #include "../pear/header.h"
+#include "../linear/header.h"
 
 
 
@@ -58,39 +59,38 @@ fix_num_t jumpstart(uint64_t index_0, uint64_t size)
 
 STRUCT(thread_pi_args)
 {
+    uint64_t id, thread_count;
+    uint64_t index_0, index_max;
     uint64_t size;
-    uint64_t index_0;
-    uint64_t index_max;
-    fix_num_t fix_res;
+    pthread_t *tid;
+    bool launched;
+    union_num_t res[3];
 };
 
 handler_p thread_pi(handler_p _args)
 {
     thread_pi_args_p args = (thread_pi_args_p)_args;
 
-    uint64_t size = args->size;
+    uint64_t id = args->id;
+    uint64_t thread_count = args->thread_count;
     uint64_t index_0 = args->index_0;
     uint64_t index_max = args->index_max;
+    uint64_t size = args->size;
+    union_num_t res[3];
 
-    fix_num_t fix_a = jumpstart(index_0 - 1, size);
-    fix_num_t fix_res = fix_num_wrap(0, size - 1);
-    for(uint64_t i=index_0; i<index_max; i++)
+    // printf("\nargs: %lu %lu %lu", index_0, index_max, size);
+    binary_splitting(res, size, index_0, index_max, 0, id ? 0 : index_max);
+
+    while(!args->launched);
+    for(uint64_t mask = 1; (mask < thread_count) && ((mask & id) == 0); mask *= 2)
     {
-        fix_a = fix_num_mul_sig(fix_a, sig_num_wrap((int64_t)2 * i - 3));
-        fix_a = fix_num_div_sig(fix_a, sig_num_wrap((int64_t)8 * i));
-
-        fix_num_t fix_b = fix_num_copy(fix_a);
-        fix_b = fix_num_mul_sig(fix_b, sig_num_wrap((int64_t)1 - 2 * i));
-        fix_b = fix_num_div_sig(fix_b, sig_num_wrap((int64_t)4 * i + 2));
-
-        fix_res = fix_num_add(fix_res, fix_b);
-
-        if(i%1000 == 0 && index_0 == 1)
-            fprintf(stderr, "\n%lu / %lu", i / 1000, index_max / 1000);
+        pthread_join_treat(args->tid[id + mask]);
+        binary_splitting_join(res, res, args[mask].res);
     }
-    fix_num_free(fix_a);
 
-    args->fix_res = fix_res;
+    args->res[0] = res[0];
+    args->res[1] = res[1];
+    args->res[2] = res[2];
     return NULL;
 }
 
@@ -132,30 +132,49 @@ void split_work(uint64_t index[], uint64_t size, uint64_t thread_count)
     index[thread_count] = index_max;
 }
 
-fix_num_t pi_threads(uint64_t size, uint64_t thread_count)
+float_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)
 {
+    uint64_t index_max = 32 * size + 4;
+    uint64_t index[thread_count + 1];
+    index[0] = 0;
+    index[thread_count] = index_max;
+    for(uint64_t i=1; i<thread_count; i++)
+    {
+        index[i] = index_max * i / thread_count;
+    }
+    // for(uint64_t i=0;  i<=thread_count; i++)
+    //     printf("\nindex[%lu]: %lu", i, index[i]);
+
     thread_pi_args_t args[thread_count];
     pthread_t tid[thread_count];
-    uint64_t index[thread_count + 1];
-    split_work(index, size, thread_count);
-    for(uint64_t i=0; i<thread_count; i++)
+    for(uint64_t i=0;i<thread_count; i++)
     {
         args[i] = (thread_pi_args_t)
         {
+            .id = i,
+            .thread_count = thread_count,
+            .index_0 = index[i] + 1,
+            .index_max = index[i + 1],
             .size = size,
-            .index_0 = index[i],
-            .index_max = index[i+1]
+            .tid = tid
         };
         tid[i] = pthread_create_treat(thread_pi, &args[i]);
-        pthread_lock(tid[i], 8 + i);
+        pthread_lock(tid[i], thread_0 + i);
     }
 
-    fix_num_t fix_pi = fix_num_wrap(3, size - 1);
-    for(uint64_t i=0; i<thread_count; i++)
-    {
-        pthread_join_treat(tid[i]);
-        fix_pi = fix_num_add(fix_pi, args[i].fix_res);
-    }
+    for(uint64_t i=0;i<thread_count; i++)
+        args[i].launched = true;
 
-    return fix_pi;
+    pthread_join_treat(tid[0]);
+    union_num_t *res = args[0].res;
+    union_num_free(res[0]);
+
+    float_num_t flt_q = union_num_unwrap_float(res[1]);
+    float_num_t flt_r = union_num_unwrap_float(res[2]);
+
+    float_num_t flt_pi = flt_r;
+    flt_pi = float_num_mul_sig(flt_pi, sig_num_wrap(6));
+    flt_pi = float_num_div(flt_pi, flt_q);
+    flt_pi = float_num_add(flt_pi, float_num_wrap(3, size));
+    return flt_pi;
 }

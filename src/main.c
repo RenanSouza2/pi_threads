@@ -9,30 +9,31 @@
 
 
 
+void time_1()
+{
+    for(uint64_t i=1000; i <= 65000; i+=1000)
+    {
+        printf("\n%lu", i);
+        TIME_SETUP
+        float_num_t flt = pi_v3(i);
+        TIME_END(t3)
+        printf(",\t%.2f", t3/1e9);
+        float_num_free(flt);
+    }
+}
+
 // int main(int argc, char** argv)
 int main()
 {
     setbuf(stdout, NULL);
 
-    // uint64_t size = 10;
+    // uint64_t size = 1000;
+    uint64_t size = 100000;
+    float_num_t flt_1 = pi_threads(size, 8, 8);
+    // printf("\n\n");float_num_display_dec(flt_1);
+    float_num_free(flt_1);
 
-    // TIME_SETUP
-    // pi_v2(size);
-    // TIME_END(t2)
-    // printf("\nt2: %.2f", t2/1e9);
-
-    // float_num_t flt = pi_v3(size);
-    // printf("\n\n");float_num_display_dec(flt);
-    // float_num_free(flt);
-
-    for(uint64_t i=100; i <= 5000; i+=100)
-    {
-        TIME_SETUP
-        float_num_t flt = pi_v3(i);
-        TIME_END(t3)
-        printf("\n%lu,  %.2f", i, t3/1e9);
-        float_num_free(flt);
-    }
+    // time_1();
 
     printf("\n");
     return 0;
