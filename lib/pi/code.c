@@ -20,43 +20,6 @@
 
 
 
-fix_num_t jumpstart(uint64_t index_0, uint64_t size)
-{
-    uint64_t layer_count = 3;
-
-    if(index_0 == 0)
-        return fix_num_wrap(6, size - 1);
-
-    assert(index_0 > 3);
-    uint64_t index_max = index_0 / 2;
-    uint64_t i_max = (index_max + layer_count - 2) / layer_count;
-    uint64_t delta = (index_0 + 1) / 2;
-    uint64_t pos = size < index_0 / 32 + 2 ? 2 : size - index_0 / 32;
-
-    float_num_t flt_1 = float_num_wrap(-6, pos);
-    float_num_t flt_2 = float_num_wrap( 1, pos);
-    for(uint64_t i=0; i<i_max; i++)
-    {
-        uint64_t index = 2 + layer_count * i;
-
-        sig_num_t sig_1 = sig_num_wrap(2 * (index + delta) - 3);
-        sig_num_t sig_2 = sig_num_wrap(index);
-        for(uint64_t k=1; (k<layer_count) && index + k <= index_0; k++)
-        {
-            sig_1 = sig_num_mul(sig_1, sig_num_wrap(2 * (index + k + delta) - 3));
-            sig_2 = sig_num_mul(sig_2, sig_num_wrap(index + k));
-        }
-
-        flt_1 = float_num_mul_sig(flt_1, sig_1);
-        flt_2 = float_num_mul_sig(flt_2, sig_2);
-    }
-    flt_1 = float_num_shr(flt_1, 7 * index_0 / 2);
-    flt_1 = float_num_div(flt_1, flt_2);
-    return fix_num_wrap_float(flt_1, size);
-}
-
-
-
 STRUCT(thread_pi_args)
 {
     uint64_t id, thread_count;
@@ -92,44 +55,6 @@ handler_p thread_pi(handler_p _args)
     args->res[1] = res[1];
     args->res[2] = res[2];
     return NULL;
-}
-
-void split_work(uint64_t index[], uint64_t size, uint64_t thread_count)
-{
-    uint64_t index_max = 32 * size + 4;
-
-    double_t tmp[thread_count + 1];
-    for(uint64_t i=0; i<thread_count; i++)
-    {
-        double y = (double)i / thread_count;
-        tmp[i] = 1 - sqrt(1.0 - y);
-    }
-    tmp[thread_count] = 1;
-
-    for(uint64_t i=0; i<thread_count; i++)
-        tmp[i] = tmp[i+1] - tmp[i];
-
-    for(uint64_t i=0; i<thread_count/4; i++)
-        tmp[i] *= 2 / (1 + (double)i / thread_count);
-
-    double total = 0;
-    for(uint64_t i=0; i<thread_count; i++)
-        total += tmp[i];
-
-    double cum = 0;
-    for(uint64_t i=0; i<=thread_count; i++)
-    {
-        double delta = tmp[i];
-        tmp[i] = cum / total;
-        cum += delta;
-    }
-
-    index[0] = 1;
-    for(uint64_t i=1; i<thread_count; i++)
-    {
-        index[i] = index_max * tmp[i];
-    }
-    index[thread_count] = index_max;
 }
 
 float_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)

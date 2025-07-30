@@ -336,8 +336,8 @@ void binary_splitting(
     uint64_t max
 )
 {
-    if(depth == 7 && max)
-        fprintf(stderr, "\n%.1f %%", 100.0 * i_0 / max);
+    // if(depth == 7 && max)
+    //     fprintf(stderr, "\n%.1f %%", 100.0 * i_0 / max);
 
     assert(i_0 <= i_max);
     if(i_0 == i_max)
@@ -354,9 +354,6 @@ void binary_splitting(
         out[0] = union_num_wrap_sig(sig_p, size);
         out[1] = union_num_wrap_sig(sig_q, size);
         out[2] = union_num_wrap_sig(sig_r, size);
-
-        // printf("\ni> %lu", i_0);
-        // union_num_display()
 
         return;
     }
