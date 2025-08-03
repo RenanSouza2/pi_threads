@@ -14,6 +14,53 @@
 
 
 
+void union_num_display(union_num_t u)
+{
+    switch (u.type)
+    {
+        case SIG:
+        {
+            printf("SIG | ");sig_num_display_dec(u.num.sig);
+            return;
+        }
+        break;
+
+        case FLT:
+        {
+            printf("FLT | ");flt_num_display_dec(u.num.flt);
+            return;
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+void union_num_display_full(char tag[], union_num_t u)
+{
+    printf("\n%s: ", tag);
+    switch (u.type)
+    {
+        case SIG:
+        {
+            printf("SIG |");
+            num_display_opts(u.num.sig.num, NULL, true, true);
+            return;
+        }
+        break;
+
+        case FLT:
+        {
+            printf("FLT | exponent: %ld | ", u.num.flt.exponent);
+            num_display_opts(u.num.flt.sig.num, NULL, true, true);
+            return;
+        }
+        break;
+    }
+    exit(EXIT_FAILURE);
+}
+
+
+
 union_num_t union_num_wrap_flt(flt_num_t flt, uint64_t size)
 {
     return (union_num_t)
@@ -102,7 +149,7 @@ void union_num_save(char file_path[], union_num_t u)
     FILE *fp = fopen(file_path, "w");
     assert(fp);
 
-    fprintf(fp, " %lu", u.type);
+    fprintf(fp, " %lu %lu", u.type, u.size);
     switch (u.type)
     {
         case SIG:
@@ -115,64 +162,59 @@ void union_num_save(char file_path[], union_num_t u)
     
         default: assert(false);
     }
-    printf(" FINISHED");
+    fprintf(fp, " %x", 0xd0bbe);
+    fclose(fp);
 }
 
-// bool union_num_load(char file_path, union_num_p u)
-// {
-
-// }
-
-
-
-union_num_t union_num_mul(union_num_t u_1, union_num_t u_2)
+bool file_validate(FILE *fp)
 {
-    switch (u_1.type)
+    if(fp == NULL) return false;
+
+    int64_t count = 5;
+    if(fseek(fp, 0, SEEK_END)) return false;
+    int64_t size = ftell(fp);
+    if(size < count) return 3;
+    if(fseek(fp, size - count, SEEK_SET)) return false;
+    
+    uint64_t magic;
+    if(fscanf(fp, "%lx", &magic) != 1) return false;
+    if(magic != 0xd0bbe) return 6;
+    if(fseek(fp, 0, SEEK_SET)) return false;
+
+    return true;
+}
+
+bool union_num_load(char file_path[], union_num_p u)
+{
+    FILE *fp = fopen(file_path, "r");
+    if(file_validate(fp) == false)
+        return false;
+
+    printf("\nis valid");
+    uint64_t type, size;
+    assert(fscanf(fp, "%lx %lx", &type, &size) == 2);
+    printf("type: %lu, size: %lx", type, size);
+
+    switch (type)
     {
         case SIG:
         {
-            switch (u_2.type)
-            {
-                case SIG:
-                {
-                    sig_num_t sig = sig_num_mul(u_1.num.sig, u_2.num.sig);
-                    return union_num_wrap_sig(sig, u_1.size);
-                }
-                break;
-
-                case FLT:
-                {
-                    flt_num_t flt = flt_num_mul_sig(u_2.num.flt, u_1.num.sig);
-                    return union_num_wrap_flt(flt, u_1.size);
-                }
-                break;
-            }
+            sig_num_t sig = sig_num_file_read(fp);
+            *u = union_num_wrap_sig(sig, size);
+            return true;
         }
-        break;
 
         case FLT:
         {
-            switch (u_2.type)
-            {
-                case SIG:
-                {
-                    flt_num_t flt = flt_num_mul_sig(u_1.num.flt, u_2.num.sig);
-                    return union_num_wrap_flt(flt, u_1.size);
-                }
-                break;
-
-                case FLT:
-                {
-                    flt_num_t flt = flt_num_mul(u_1.num.flt, u_2.num.flt);
-                    return union_num_wrap_flt(flt, u_1.size);
-                }
-                break;
-            }
+            flt_num_t flt = flt_num_file_read(fp);
+            *u = union_num_wrap_flt(flt, size);
+            return true;
         }
-        break;
     }
-    exit(EXIT_FAILURE);
+    assert(false);
 }
+
+
 
 union_num_t union_num_add(union_num_t u_1, union_num_t u_2)
 {
@@ -223,44 +265,49 @@ union_num_t union_num_add(union_num_t u_1, union_num_t u_2)
     exit(EXIT_FAILURE);
 }
 
-void union_num_display(union_num_t u)
+union_num_t union_num_mul(union_num_t u_1, union_num_t u_2)
 {
-    switch (u.type)
+    switch (u_1.type)
     {
         case SIG:
         {
-            printf("SIG | ");sig_num_display_dec(u.num.sig);
-            return;
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    sig_num_t sig = sig_num_mul(u_1.num.sig, u_2.num.sig);
+                    return union_num_wrap_sig(sig, u_1.size);
+                }
+                break;
+
+                case FLT:
+                {
+                    flt_num_t flt = flt_num_mul_sig(u_2.num.flt, u_1.num.sig);
+                    return union_num_wrap_flt(flt, u_1.size);
+                }
+                break;
+            }
         }
         break;
 
         case FLT:
         {
-            printf("FLT | ");flt_num_display_dec(u.num.flt);
-            return;
-        }
-        break;
-    }
-    exit(EXIT_FAILURE);
-}
+            switch (u_2.type)
+            {
+                case SIG:
+                {
+                    flt_num_t flt = flt_num_mul_sig(u_1.num.flt, u_2.num.sig);
+                    return union_num_wrap_flt(flt, u_1.size);
+                }
+                break;
 
-void union_num_display_full(char tag[], union_num_t u)
-{
-    switch (u.type)
-    {
-        case SIG:
-        {
-            printf("\nSIG | %s ", tag);
-            num_display_opts(u.num.sig.num, NULL, true, true);
-            return;
-        }
-        break;
-
-        case FLT:
-        {
-            printf("\nFLT | %s ", tag);
-            num_display_opts(u.num.flt.sig.num, NULL, true, true);
-            return;
+                case FLT:
+                {
+                    flt_num_t flt = flt_num_mul(u_1.num.flt, u_2.num.flt);
+                    return union_num_wrap_flt(flt, u_1.size);
+                }
+                break;
+            }
         }
         break;
     }
