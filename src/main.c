@@ -29,9 +29,11 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 50000;
+    uint64_t size = 5000;
     flt_num_t flt = pi_big(size);
-    flt_num_display_dec(flt);
+    // flt_num_display_dec(flt);
+
+    printf("\nmax: %lu", clu_get_max_occupancy());
 
     printf("\n");
     return 0;

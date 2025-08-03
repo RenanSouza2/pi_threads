@@ -146,7 +146,7 @@ void union_num_free(union_num_t u)
 
 void union_num_file_write(FILE *fp, union_num_t u)
 {
-    fprintf(fp, " %lu %lu", u.type, u.size);
+    fprintf(fp, " %lx %lx", u.type, u.size);
     switch (u.type)
     {
         case SIG:

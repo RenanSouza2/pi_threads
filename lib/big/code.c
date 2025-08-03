@@ -154,7 +154,7 @@ void binary_splitting_big(
 
     union_num_t res_2[3];
     binary_splitting_big(res_2, size, depth + 1, i_half + 1, i_max);
-
+    
     res_load(res_1, size, depth + 1, i_0, i_half);
     binary_splitting_join(out, res_1, res_2);
 
@@ -173,7 +173,7 @@ flt_num_t pi_big(uint64_t size)
 
     flt_num_t flt_q = union_num_unwrap_flt(res[1]);
     flt_num_t flt_r = union_num_unwrap_flt(res[2]);
-
+    
     flt_num_t flt_pi = flt_r;
     flt_pi = flt_num_mul_sig(flt_pi, sig_num_wrap(6));
     flt_pi = flt_num_div(flt_pi, flt_q);
