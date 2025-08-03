@@ -144,11 +144,8 @@ void union_num_free(union_num_t u)
 
 
 
-void union_num_save(char file_path[], union_num_t u)
+void union_num_file_write(FILE *fp, union_num_t u)
 {
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
-
     fprintf(fp, " %lu %lu", u.type, u.size);
     switch (u.type)
     {
@@ -162,53 +159,26 @@ void union_num_save(char file_path[], union_num_t u)
     
         default: assert(false);
     }
-    fprintf(fp, " %x", 0xd0bbe);
-    fclose(fp);
 }
 
-bool file_validate(FILE *fp)
+void union_num_file_read(FILE *fp, union_num_p u)
 {
-    if(fp == NULL) return false;
-
-    int64_t count = 5;
-    if(fseek(fp, 0, SEEK_END)) return false;
-    int64_t size = ftell(fp);
-    if(size < count) return 3;
-    if(fseek(fp, size - count, SEEK_SET)) return false;
-    
-    uint64_t magic;
-    if(fscanf(fp, "%lx", &magic) != 1) return false;
-    if(magic != 0xd0bbe) return 6;
-    if(fseek(fp, 0, SEEK_SET)) return false;
-
-    return true;
-}
-
-bool union_num_load(char file_path[], union_num_p u)
-{
-    FILE *fp = fopen(file_path, "r");
-    if(file_validate(fp) == false)
-        return false;
-
-    printf("\nis valid");
     uint64_t type, size;
     assert(fscanf(fp, "%lx %lx", &type, &size) == 2);
-    printf("type: %lu, size: %lx", type, size);
-
     switch (type)
     {
         case SIG:
         {
             sig_num_t sig = sig_num_file_read(fp);
             *u = union_num_wrap_sig(sig, size);
-            return true;
+            return;
         }
 
         case FLT:
         {
             flt_num_t flt = flt_num_file_read(fp);
             *u = union_num_wrap_flt(flt, size);
-            return true;
+            return;
         }
     }
     assert(false);
