@@ -34,18 +34,8 @@ void binary_splitting_join(
 }
 
 // out vector length 3, returns P, Q, R in that order
-void binary_splitting(
-    union_num_t out[],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t i_max,
-    uint64_t depth,
-    uint64_t max
-)
+void binary_splitting(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
 {
-    // if(depth == 7 && max)
-    //     fprintf(stderr, "\n%.1f %%", 100.0 * i_0 / max);
-
     assert(i_0 <= i_max);
     if(i_0 == i_max)
     {
@@ -67,7 +57,7 @@ void binary_splitting(
 
     uint64_t i_half = (i_0 + i_max) / 2;
     union_num_t res_1[3], res_2[3];
-    binary_splitting(res_1, size, i_0       , i_half, depth + 1, max);
-    binary_splitting(res_2, size, i_half + 1, i_max , depth + 1, max);
+    binary_splitting(res_1, size, i_0       , i_half);
+    binary_splitting(res_2, size, i_half + 1, i_max );
     binary_splitting_join(out, res_1, res_2);
 }

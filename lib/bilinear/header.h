@@ -8,13 +8,6 @@ void binary_splitting_join(
     union_num_t res_1[3],
     union_num_t res_2[3]
 );
-void binary_splitting(
-    union_num_t out[],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t i_max,
-    uint64_t depth,
-    uint64_t max
-);
+void binary_splitting(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max);
 
 #endif
