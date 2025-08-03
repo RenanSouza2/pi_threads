@@ -97,6 +97,34 @@ void union_num_free(union_num_t u)
 
 
 
+void union_num_save(char file_path[], union_num_t u)
+{
+    FILE *fp = fopen(file_path, "w");
+    assert(fp);
+
+    fprintf(fp, " %lu", u.type);
+    switch (u.type)
+    {
+        case SIG:
+        sig_num_file_write(fp, u.num.sig);
+        break;
+
+        case FLT:
+        flt_num_file_write(fp, u.num.flt);
+        break;
+    
+        default: assert(false);
+    }
+    printf(" FINISHED");
+}
+
+// bool union_num_load(char file_path, union_num_p u)
+// {
+
+// }
+
+
+
 union_num_t union_num_mul(union_num_t u_1, union_num_t u_2)
 {
     switch (u_1.type)
