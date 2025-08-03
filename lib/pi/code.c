@@ -12,6 +12,7 @@
 
 #include "../pear/header.h"
 #include "../linear/header.h"
+#include "../union/header.h"
 
 
 
@@ -57,7 +58,7 @@ handler_p thread_pi(handler_p _args)
     return NULL;
 }
 
-float_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)
+flt_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)
 {
     uint64_t index_max = 32 * size + 4;
     uint64_t index[thread_count + 1];
@@ -94,12 +95,12 @@ float_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)
     union_num_t *res = args[0].res;
     union_num_free(res[0]);
 
-    float_num_t flt_q = union_num_unwrap_float(res[1]);
-    float_num_t flt_r = union_num_unwrap_float(res[2]);
+    flt_num_t flt_q = union_num_unwrap_flt(res[1]);
+    flt_num_t flt_r = union_num_unwrap_flt(res[2]);
 
-    float_num_t flt_pi = flt_r;
-    flt_pi = float_num_mul_sig(flt_pi, sig_num_wrap(6));
-    flt_pi = float_num_div(flt_pi, flt_q);
-    flt_pi = float_num_add(flt_pi, float_num_wrap(3, size));
+    flt_num_t flt_pi = flt_r;
+    flt_pi = flt_num_mul_sig(flt_pi, sig_num_wrap(6));
+    flt_pi = flt_num_div(flt_pi, flt_q);
+    flt_pi = flt_num_add(flt_pi, flt_num_wrap(3, size));
     return flt_pi;
 }

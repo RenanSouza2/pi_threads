@@ -15,10 +15,10 @@ void time_1()
     {
         printf("\n%lu", i);
         TIME_SETUP
-        fix_num_t flt = pi_v1(i);
+        fxd_num_t flt = pi_v1(i);
         TIME_END(t3)
         printf("\t%.2f", t3/1e9);
-        fix_num_free(flt);
+        fxd_num_free(flt);
     }
 }
 
@@ -27,13 +27,14 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    // uint64_t size = 1000;
-    // // uint64_t size = 20000000;
-    // // float_num_t flt_1 = pi_threads(size, 8, 0);
-    // // printf("\n\n");float_num_display_dec(flt_1);
-    // // float_num_free(flt_1);
+    uint64_t size = 50000;
+    // uint64_t size = 20000000;
+    // flt_num_t flt_1 = pi_threads(size, 8, 0);
+    flt_num_t flt_1 = pi_v3(size);
+    // printf("\n\n");flt_num_display_dec(flt_1);
+    flt_num_free(flt_1);
 
-    time_1();
+    // time_1();
 
     printf("\n");
     return 0;
