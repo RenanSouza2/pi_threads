@@ -27,14 +27,11 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 50000;
-    // uint64_t size = 20000000;
-    // flt_num_t flt_1 = pi_threads(size, 8, 0);
-    flt_num_t flt_1 = pi_v3(size);
-    // printf("\n\n");flt_num_display_dec(flt_1);
-    flt_num_free(flt_1);
-
-    // time_1();
+    uint64_t size = 40;
+    flt_num_t flt = flt_num_div(
+        flt_num_wrap(1, size),
+        flt_num_wrap(7, size)
+    );
 
     printf("\n");
     return 0;

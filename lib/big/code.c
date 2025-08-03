@@ -7,7 +7,7 @@
 #include "../../mods/macros/uint.h"
 
 #include "../union/header.h"
-#include "../linear/header.h"
+#include "../bilinear/header.h"
 
 
 #ifdef DEBUG

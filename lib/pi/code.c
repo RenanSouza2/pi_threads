@@ -11,7 +11,7 @@
 #include "../../mods/number/lib/sig/header.h"
 
 #include "../pear/header.h"
-#include "../linear/header.h"
+#include "../bilinear/header.h"
 #include "../union/header.h"
 
 
@@ -68,8 +68,6 @@ flt_num_t pi_threads(uint64_t size, uint64_t thread_count, uint64_t thread_0)
     {
         index[i] = index_max * i / thread_count;
     }
-    // for(uint64_t i=0;  i<=thread_count; i++)
-    //     printf("\nindex[%lu]: %lu", i, index[i]);
 
     thread_pi_args_t args[thread_count];
     pthread_t tid[thread_count];
