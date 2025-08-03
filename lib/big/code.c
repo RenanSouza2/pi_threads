@@ -125,7 +125,8 @@ void binary_splitting_big(
     uint64_t i_max
 )
 {
-    if(i_max - i_0 < 1048576)
+    // if(i_max - i_0 < 1048576)
+    if(i_max - i_0 < 1024)
     {
         binary_splitting(out, size, i_0, i_max);
         res_save(out, size, depth, i_0, i_max);
@@ -136,10 +137,25 @@ void binary_splitting_big(
         return;
 
     uint64_t i_half = (i_0 + i_max) / 2;
-    union_num_t res_1[3], res_2[3];
 
-    binary_splitting_big(res_1, size, depth + 1, i_0       , i_half);
-    binary_splitting_big(res_2, size, depth + 1, i_half + 1, i_max );
+    union_num_t res_1[3];
+    FILE *fp = file_try_open(size, depth + 1, i_0, i_half);
+    if(fp)
+    {
+        fclose(fp);
+    }
+    else
+    {
+        binary_splitting_big(res_1, size, depth + 1, i_0, i_half);
+        union_num_free(res_1[0]);
+        union_num_free(res_1[1]);
+        union_num_free(res_1[2]);
+    }
+
+    union_num_t res_2[3];
+    binary_splitting_big(res_2, size, depth + 1, i_half + 1, i_max);
+
+    res_load(res_1, size, depth + 1, i_0, i_half);
     binary_splitting_join(out, res_1, res_2);
 
     res_save(out, size, depth, i_0, i_max);
