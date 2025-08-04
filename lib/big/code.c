@@ -7,7 +7,7 @@
 #include "../../mods/macros/uint.h"
 
 #include "../union/header.h"
-#include "../bilinear/header.h"
+#include "../split/header.h"
 
 
 
@@ -117,7 +117,7 @@ void res_delete(uint64_t size, uint64_t depth, uint64_t i_0, uint64_t i_max)
 
 
 // out vector length 3, returns P, Q, R in that order
-void binary_splitting_big(
+void split_big(
     union_num_t out[],
     uint64_t size,
     uint64_t depth,
@@ -128,7 +128,7 @@ void binary_splitting_big(
     // if(i_max - i_0 < 1024)
     if(i_max - i_0 < 65536)
     {
-        binary_splitting(out, size, i_0, i_max);
+        split(out, size, i_0, i_max);
         res_save(out, size, depth, i_0, i_max);
         return;
     }
@@ -146,17 +146,17 @@ void binary_splitting_big(
     }
     else
     {
-        binary_splitting_big(res_1, size, depth + 1, i_0, i_half);
+        split_big(res_1, size, depth + 1, i_0, i_half);
         union_num_free(res_1[0]);
         union_num_free(res_1[1]);
         union_num_free(res_1[2]);
     }
 
     union_num_t res_2[3];
-    binary_splitting_big(res_2, size, depth + 1, i_half + 1, i_max);
+    split_big(res_2, size, depth + 1, i_half + 1, i_max);
     
     res_load(res_1, size, depth + 1, i_0, i_half);
-    binary_splitting_join(out, res_1, res_2);
+    split_join(out, res_1, res_2);
 
     res_save(out, size, depth, i_0, i_max);
     res_delete(size, depth + 1, i_0       , i_half);
@@ -168,7 +168,7 @@ flt_num_t pi_big(uint64_t size)
     uint64_t index_max = 32 * size + 4;
 
     union_num_t res[3];
-    binary_splitting_big(res, size, 0, 1, index_max);
+    split_big(res, size, 0, 1, index_max);
     union_num_free(res[0]);
 
     flt_num_t flt_q = union_num_unwrap_flt(res[1]);
