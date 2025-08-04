@@ -39,14 +39,14 @@ void split(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
     assert(i_0 <= i_max);
     if(i_0 == i_max)
     {
-        int64_t p = 2 * i_0 - 3;
-        int64_t q = 8 * i_0;
-        int64_t u = 1 - 2 * i_0;
-        int64_t v = 4 * i_0 + 2;
+        int128_t p = (int128_t)2 * i_0 - 3;
+        int128_t q = (int128_t)8 * i_0;
+        int128_t u = (int128_t)1 - 2 * i_0;
+        int128_t v = (int128_t)4 * i_0 + 2;
 
-        sig_num_t sig_p = sig_num_wrap(p * v);
-        sig_num_t sig_q = sig_num_wrap(q * v);
-        sig_num_t sig_r = sig_num_wrap(p * u);
+        sig_num_t sig_p = sig_num_wrap_int128(p * v);
+        sig_num_t sig_q = sig_num_wrap_int128(q * v);
+        sig_num_t sig_r = sig_num_wrap_int128(p * u);
 
         out[0] = union_num_wrap_sig(sig_p, size);
         out[1] = union_num_wrap_sig(sig_q, size);

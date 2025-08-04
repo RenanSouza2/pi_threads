@@ -14,7 +14,7 @@
 
 
 
-void split_join(
+void sig_split_join(
     sig_num_t out[],
     sig_num_t res_1[3],
     sig_num_t res_2[3]
@@ -33,7 +33,7 @@ void split_join(
 }
 
 // out vector length 3, returns P, Q, R in that order
-void split(sig_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
+void sig_split(sig_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
 {
     assert(i_0 <= i_max);
     if(i_0 == i_max)
@@ -52,7 +52,7 @@ void split(sig_num_t out[], uint64_t size, uint64_t i_0, uint64_t i_max)
 
     uint64_t i_half = (i_0 + i_max) / 2;
     sig_num_t res_1[3], res_2[3];
-    split(res_1, size, i_0       , i_half);
-    split(res_2, size, i_half + 1, i_max );
-    split_join(out, res_1, res_2);
+    sig_split(res_1, size, i_0       , i_half);
+    sig_split(res_2, size, i_half + 1, i_max );
+    sig_split_join(out, res_1, res_2);
 }
