@@ -40,11 +40,9 @@ int main()
     printf("\ni_0: %lu", i_0);
     i_0 = ((i_0 + i_max) / 2) + 1;
     printf("\ni_0: %lu", i_0);
-    i_0 = ((i_0 + i_max) / 2) + 1;
-    printf("\ni_0: %lu", i_0);
 
     union_num_t res[3];
-    binary_splitting_big(res, size, 3, i_0, i_max);
+    binary_splitting_big(res, size, 2, i_0, i_max);
 
 
     printf("\n");

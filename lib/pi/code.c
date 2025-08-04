@@ -43,7 +43,7 @@ handler_p thread_pi(handler_p _args)
     union_num_t res[3];
 
     // printf("\nargs: %lu %lu %lu", index_0, index_max, size);
-    binary_splitting(res, size, index_0, index_max, 0, id ? 0 : index_max);
+    binary_splitting(res, size, index_0, index_max);
 
     while(!args->launched);
     for(uint64_t mask = 1; (mask < thread_count) && ((mask & id) == 0); mask *= 2)
