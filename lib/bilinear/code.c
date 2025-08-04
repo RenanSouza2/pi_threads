@@ -21,19 +21,9 @@ void binary_splitting_join(
     union_num_t res_2[3]
 )
 {
-    // printf("\n");
-    // dprintf("joining");
-    // dprintf("res_1[0].size: %lu", res_1[0].size)
-    // dprintf("res_1[1].size: %lu", res_1[1].size)
-    // dprintf("res_1[2].size: %lu", res_1[2].size)
-    // printf("\n");
-    // dprintf("res_2[0].size: %lu", res_2[0].size)
-    // dprintf("res_2[1].size: %lu", res_2[1].size)
-    // dprintf("res_2[2].size: %lu", res_2[2].size)
-
     union_num_t u_r_1 = union_num_mul(res_1[2], union_num_copy(res_2[1]));
     union_num_t u_r_2 = union_num_mul(res_2[2], union_num_copy(res_1[0]));
-
+    
     union_num_t out_0 = union_num_mul(res_1[0], res_2[0]);
     union_num_t out_1 = union_num_mul(res_1[1], res_2[1]);
     union_num_t out_2 = union_num_add(u_r_1, u_r_2);
@@ -41,12 +31,6 @@ void binary_splitting_join(
     out[0] = out_0;
     out[1] = out_1;
     out[2] = out_2;
-
-    // printf("\n");
-    // dprintf("res");
-    // dprintf("out[0].size: %lu", out[0].size)
-    // dprintf("out[1].size: %lu", out[1].size)
-    // dprintf("out[2].size: %lu", out[2].size)
 }
 
 // out vector length 3, returns P, Q, R in that order

@@ -125,8 +125,8 @@ void binary_splitting_big(
     uint64_t i_max
 )
 {
-    // if(i_max - i_0 < 1048576)
-    if(i_max - i_0 < 1024)
+    // if(i_max - i_0 < 1024)
+    if(i_max - i_0 < 65536)
     {
         binary_splitting(out, size, i_0, i_max);
         res_save(out, size, depth, i_0, i_max);
