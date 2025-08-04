@@ -4,7 +4,7 @@
 #include "../../mods/number/header.h"
 #include "../union/struct.h"
 
-void binary_splitting_big(
+void split_big(
     union_num_t out[],
     uint64_t size,
     uint64_t depth,

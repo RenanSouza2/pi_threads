@@ -35,28 +35,31 @@ uint64_t count_zeros(sig_num_t sig)
     return sig.num->count;
 }
 
-// int main(int argc, char** argv)
-int main()
+int main(int argc, char** argv)
+// int main()
 {
     setbuf(stdout, NULL);
 
     assert(argc > 2);
     uint64_t size = atol(argv[1]);
 
-    flt_num_t flt = pi_big(size);
-    flt_num_display_dec(flt);
-    flt_num_free(flt);
+    // flt_num_t flt = pi_big(size);
+    // flt_num_display_dec(flt);
+    // flt_num_free(flt);
 
-    // uint64_t i_max = 32 * size + 4;
-    // uint64_t i_0 = 1;
-    // uint64_t depth = 0;
-    // depth++;
-    // i_0 = ((i_0 + i_max) / 2) + 1;
-    // depth++;
-    // i_0 = ((i_0 + i_max) / 2) + 1;
+    uint64_t i_max = 32 * size + 4;
+    uint64_t i_0 = 1;
+    uint64_t depth = 0;
+    depth++;
+    i_0 = ((i_0 + i_max) / 2) + 1;
+    depth++;
+    i_max = (i_0 + i_max) / 2;
+    depth++;
+    i_0 = ((i_0 + i_max) / 2) + 1;
+    printf("\n%lu %lu %lu", depth, i_0, i_max);
 
-    // union_num_t res[3];
-    // binary_splitting_big(res, size, depth, i_0, i_max);
+    union_num_t res[3];
+    split_big(res, size, depth, i_0, i_max);
 
     printf("\n");
     return 0;
