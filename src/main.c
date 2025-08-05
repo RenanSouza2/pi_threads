@@ -26,13 +26,30 @@ void time_1()
     }
 }
 
-uint64_t count_zeros(sig_num_t sig)
+void pre_call(uint64_t size, uint64_t depth, uint64_t i_0, uint64_t i_max)
 {
-    for(uint64_t i=0; i<sig.num->count; i++)
-        if(sig.num->chunk[i])
-            return i;
+    // printf("\n%lu %lu %lu", depth, i_0, i_max);
+    if(i_max <= 960000003)
+        return;
 
-    return sig.num->count;
+    if(i_0 >= 1200000004)
+        return;
+
+    if(depth == 8)
+    {
+        union_num_t res[3];
+        // printf("\n%lu %lu %lu", depth, i_0, i_max);
+        // getchar();
+        split_big(res, size, depth, i_0, i_max);
+        union_num_free(res[0]);
+        union_num_free(res[1]);
+        union_num_free(res[2]);
+        return;
+    }
+
+    uint64_t i_half = (i_0 + i_max) / 2;
+    pre_call(size, depth + 1, i_0       , i_half);
+    pre_call(size, depth + 1, i_half + 1, i_max);
 }
 
 int main(int argc, char** argv)
@@ -47,19 +64,18 @@ int main(int argc, char** argv)
     // flt_num_display_dec(flt);
     // flt_num_free(flt);
 
-    uint64_t i_max = 32 * size + 4;
-    uint64_t i_0 = 1;
-    uint64_t depth = 0;
-    depth++;
-    i_0 = ((i_0 + i_max) / 2) + 1;
-    depth++;
-    i_max = (i_0 + i_max) / 2;
-    depth++;
-    i_0 = ((i_0 + i_max) / 2) + 1;
-    printf("\n%lu %lu %lu", depth, i_0, i_max);
+    // uint64_t depth = 4;
+    // uint64_t i_0 = 1800000005;
+    // uint64_t i_max = 1920000004;
 
-    union_num_t res[3];
-    split_big(res, size, depth, i_0, i_max);
+    uint64_t depth = 0;
+    uint64_t i_0 = 1;
+    uint64_t i_max = 1920000004;
+    pre_call(size, depth, i_0, i_max);
+    
+    // union_num_t res[3];
+    // printf("\n%lu %lu %lu", depth, i_0, i_max);
+    // split_big(res, size, depth, i_0, i_max);
 
     printf("\n");
     return 0;

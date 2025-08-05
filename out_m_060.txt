@@ -1,4 +1,16 @@
 make build --directory=src -s
+building object lib/big
+building object lib/linear
+building object lib/pear
+building object lib/pi
+building object lib/pieces
+building object lib/split
+building object lib/union
+building num object lib/flt
+building num object lib/fxd
+building num object lib/mod
+building num object lib/num
+building num object lib/sig
  linking num object lib
  linking object lib
 building exec src
