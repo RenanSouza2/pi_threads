@@ -36,22 +36,6 @@ int main()
     // printf("\n\n");flt_num_display_dec(flt_pi);
     flt_num_free(flt_pi);
 
-    // sig_num_t sig[3];
-    // for(uint64_t i=0; i<3; i++)
-    //     sig[i] = sig_num_wrap(i);
-    // sig_res_save(sig, 1, 1);
-
-    // sig_num_t res[3];
-    // bool value = sig_res_try_load(res, 1, 1);
-    // printf("\ncould read: %d", value);
-    // if(value)
-    // {
-    //     for(uint64_t i=0; i<3; i++)
-    //     {
-    //         printf("\n");sig_num_display(res[i], true);
-    //     }
-    // }
-
     printf("\n");
     return 0;
 }
