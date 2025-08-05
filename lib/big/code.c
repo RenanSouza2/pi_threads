@@ -6,6 +6,7 @@
 #include "../../mods/clu/header.h"
 #include "../../mods/macros/assert.h"
 #include "../../mods/macros/uint.h"
+#include "../../mods/number/lib/num/struct.h"
 
 #include "../union/header.h"
 #include "../split/header.h"
@@ -108,7 +109,8 @@ void sig_split(sig_num_t out[3], uint64_t i_0, uint64_t span)
 
 void sig_file_path_set(char file_path[100], uint64_t i_0, uint64_t span)
 {
-    snprintf(file_path, 100, "pieces/p_%010lx_%02lx.txt", i_0, span);
+    uint64_t i_max = i_0 + B(span) - 1;
+    snprintf(file_path, 100, "pieces/p_%015ld_%02ld_%015ld.txt", i_0, span, i_max);
 }
 
 void sig_res_delete(uint64_t i_0, uint64_t span)
@@ -127,6 +129,7 @@ void sig_res_save(sig_num_t res[], uint64_t i_0, uint64_t span)
 
     for(uint64_t i=0; i<3; i++)
     {
+        // dprintf("sig.num: %p", res[i].num);
         sig_num_file_write(fp, res[i]);
         fprintf(fp, "\n");
     }
@@ -168,8 +171,8 @@ void union_res_from_sig(union_num_t out[3], sig_num_t res[3], uint64_t size)
 bool sig_res_try_from_union(sig_num_t out[3], union_num_t res[3])
 {
     if(
-        res[0].type == FLT &&
-        res[1].type == FLT &&
+        res[0].type == FLT ||
+        res[1].type == FLT ||
         res[2].type == FLT
     )
     {
@@ -185,7 +188,7 @@ bool sig_res_try_from_union(sig_num_t out[3], union_num_t res[3])
 void union_file_path_set(char file_path[100], uint64_t size, uint64_t i_0, uint64_t span)
 {
     uint64_t i_max = i_0 + span;
-    snprintf(file_path, 100, "numbers/u_%010lx_%010lx_%02lx_%010lx.txt", size, i_0, span, i_max);
+    snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, span, i_max);
 }
 
 void union_res_delete(uint64_t size, uint64_t i_0, uint64_t span)
@@ -197,19 +200,23 @@ void union_res_delete(uint64_t size, uint64_t i_0, uint64_t span)
 
 void union_res_save(union_num_t res[3], uint64_t size, uint64_t i_0, uint64_t span)
 {
-    dprintf("saving %lu %lu %lu", size, i_0, span);
+    // dprintf("saving %lu %lu %lu", size, i_0, span);
 
     sig_num_t sig_res[3];
     if(sig_res_try_from_union(sig_res, res))
     {
-        char file_path[100];
-        sig_file_path_set(file_path, i_0, span);
-        sig_res_save(sig_res, i_0, span);
+        // dprintf("union_res[0].type: %lu", res[0].type);
+        // dprintf("union_res[1].type: %lu", res[1].type);
+        // dprintf("union_res[2].type: %lu", res[2].type);
 
-        sig_res_delete(i_0              , span - 1);
-        sig_res_delete(i_0 + B(span - 1), span - 1);
+        // assert(false);
+        // dprintf("is piece");
+        // dprintf("count: %lu", sig_res[0].num->count);
+        sig_res_save(sig_res, i_0, span);
         return;
     }
+
+    // dprintf("is union");
 
     char file_path[100];
     union_file_path_set(file_path, size, i_0, span);
@@ -280,31 +287,34 @@ bool union_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span)
 // out vector length 3, returns P, Q, R in that order
 void union_split_big_span(union_num_t out[], uint64_t size, uint64_t i_0, uint64_t span)
 {
-    dprintf(" begin | %lx %lu", i_0, span);
-    getchar();
+    // dprintf("begin | %lx %lu", i_0, span);
+    // dprintf("waiting input")
+    // getchar();
 
     if(union_res_try_load(out, size, i_0, span))
     {
-        dprintf("response already there");
+        // dprintf("response already there");
         return;
     }
 
     if(span == 16)
     {
-        dprintf("case span is 16")
+        // dprintf("case span is 16")
 
         sig_num_t res[3];
         sig_split(res, i_0, span);
         sig_res_save(res, i_0, span);
+        // dprintf("count: %lu", res[0].num->count)
         union_res_from_sig(out, res, size);
         return;
     }
 
-    dprintf("response not there");
+    // dprintf("response not there");
+
     // first half
     if(!union_res_is_stored(size, i_0, span - 1))
     {
-        dprintf("first half not there")
+        // dprintf("first half not there")
         union_num_t res[3];
         union_split_big_span(res, size, i_0, span - 1);
         union_num_free(res[0]);
@@ -313,7 +323,7 @@ void union_split_big_span(union_num_t out[], uint64_t size, uint64_t i_0, uint64
     }
     else
     {
-        dprintf("first half was there");
+        // dprintf("first half was there");
     }
 
     //second half
@@ -322,7 +332,7 @@ void union_split_big_span(union_num_t out[], uint64_t size, uint64_t i_0, uint64
 
     union_num_t res_1[3];
 
-    dprintf("joining %lx %lu", i_0, span)
+    // dprintf("joining %lx %lu", i_0, span)
     assert(union_res_try_load(res_1, size, i_0, span - 1));
     split_join(out, res_1, res_2);
 
@@ -334,9 +344,9 @@ void union_split_big_span(union_num_t out[], uint64_t size, uint64_t i_0, uint64
 flt_num_t pi_big(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
-    printf("\nindex-max: %lx", index_max);
-    index_max = stdc_bit_ceil(index_max + B(16) - 1);
-    printf("\nindex-max: %lx", index_max);
+    index_max = stdc_bit_ceil(index_max);
+    if(index_max < B(16)) index_max = B(16);
+    // printf("\nindex_max: %lu", index_max);
 
     union_num_t res[3];
     union_split_big_span(res, size, 1, stdc_bit_width(index_max));
