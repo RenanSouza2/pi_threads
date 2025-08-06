@@ -378,7 +378,7 @@ void split_big_res_save(
     fprintf(fp, " D0BBE");
     fclose(fp);
 
-    uint64_t span = stdc_bit_width(remainder);
+    uint64_t span = stdc_bit_width(remainder) - 1;
     split_span_res_delete(size, i_0, span, depth + 1);
     split_big_res_delete(size, i_0 + B(span), remainder - B(span), depth + 1);
 }
@@ -393,7 +393,7 @@ bool split_big_res_try_load(
 {
     if(stdc_count_ones(remainder) == 1)
     {
-        uint64_t span = stdc_bit_width(remainder);
+        uint64_t span = stdc_bit_width(remainder) - 1;
         return split_span_res_try_load(out, size, i_0, span, depth);
     }
 
@@ -417,7 +417,7 @@ bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t depth, uint64
 {
     if(stdc_count_ones(remainder) == 1)
     {
-        uint64_t span = stdc_bit_width(remainder);
+        uint64_t span = stdc_bit_width(remainder) - 1;
         return split_span_res_is_stored(size, i_0, span, depth);
     }
 
@@ -443,7 +443,7 @@ void split_big(
     if(split_big_res_try_load(out, size, i_0, depth, remainder))
         return;
 
-    uint64_t span = stdc_bit_width(remainder);
+    uint64_t span = stdc_bit_width(remainder) - 1;
     if(stdc_count_ones(remainder) == 1)
     {
         split_span(out, size, i_0, span, depth + 1);
@@ -475,13 +475,10 @@ void split_big(
 flt_num_t pi_big(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
-    index_max = stdc_bit_ceil(index_max);
 
     uint64_t aux = index_max & (B(PIECE_SIZE) - 1);
     if(aux)
         index_max += B(PIECE_SIZE) - aux;
-
-    printf("\nindex_max: %lu", index_max);
 
     union_num_t res[3];
     split_big(res, size, 1, index_max, 0);
@@ -495,4 +492,21 @@ flt_num_t pi_big(uint64_t size)
     flt_pi = flt_num_div(flt_pi, flt_q);
     flt_pi = flt_num_add(flt_pi, flt_num_wrap(3, size));
     return flt_pi;
+}
+
+void prepare(uint64_t size, uint64_t begin)
+{
+    uint64_t index_max = 32 * size + 4;
+
+    uint64_t aux = index_max & (B(PIECE_SIZE) - 1);
+    if(aux)
+        index_max += B(PIECE_SIZE) - aux;
+
+    printf("\nindex_max: %lu", index_max);
+    for(uint64_t i=begin * B(16) + 1; i<index_max; i += B(16))
+    {
+        printf("\ni: %lx", i);
+        union_num_t res[3];
+        split_span(res, size, i, 16, 0);
+    }
 }

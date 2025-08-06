@@ -31,10 +31,11 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 1000000;
+    uint64_t size = 60000000;
     flt_num_t flt_pi = pi_big(size);
-    // printf("\n\n");flt_num_display_dec(flt_pi);
+    printf("\n\n");flt_num_display_dec(flt_pi);
     flt_num_free(flt_pi);
+    // prepare(size, 50);
 
     printf("\n");
     return 0;
