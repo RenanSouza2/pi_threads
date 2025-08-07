@@ -6,6 +6,7 @@
 #include "../../mods/clu/header.h"
 #include "../../mods/macros/assert.h"
 #include "../../mods/macros/uint.h"
+#include "../../mods/macros/time.h"
 #include "../../mods/number/lib/num/struct.h"
 
 #include "../union/header.h"
@@ -303,6 +304,7 @@ void split_span(
 )
 {
     assert(span >= PIECE_SPAN);
+    tprintf("begin | %lu %lu %lu", i_0, span, depth);
 
     if(split_span_res_try_load(out, size, i_0, span, depth))
         return;
@@ -330,7 +332,12 @@ void split_span(
 
     union_num_t res_1[3];
     assert(split_span_res_try_load(res_1, size, i_0, span - 1, depth + 1));
+    
+    tprintf("joining | %lu %lu %lu", i_0, span, depth);
+    TIME_SETUP
     split_join(out, res_1, res_2);
+    TIME_END(t1)
+    printf("\t\t%.1f", t1 / 1e9);
 
     split_span_res_save(out, size, i_0, span, depth);
 }
@@ -345,7 +352,7 @@ void split_big_file_path_set(
     uint64_t remainder
 )
 {
-    uint64_t i_max = i_0 + remainder - 1;
+    uint64_t i_max = i_0 + remainder - 1; // TODO remove -1
     snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
@@ -440,6 +447,8 @@ void split_big(
     uint64_t depth
 )
 {
+    tprintf("begin | %lu %lu %lu", i_0, remainder, depth)
+
     if(split_big_res_try_load(out, size, i_0, depth, remainder))
         return;
 
@@ -464,7 +473,12 @@ void split_big(
 
     union_num_t res_1[3];
     assert(split_span_res_try_load(res_1, size, i_0, span, depth + 1));
+
+    tprintf("joining | %lu %lu", i_0, remainder);
+    TIME_SETUP
     split_join(out, res_1, res_2);
+    TIME_END(t1)
+    printf("\t\t%.1f", t1 / 1e9);
 
     split_big_res_save(out, size, i_0, depth, remainder);
 }
@@ -494,19 +508,26 @@ flt_num_t pi_big(uint64_t size)
     return flt_pi;
 }
 
-void prepare(uint64_t size, uint64_t begin)
+void prepare(uint64_t size, uint64_t span, uint64_t begin, uint64_t end)
 {
-    uint64_t index_max = 32 * size + 4;
+    uint64_t i_max = 32 * size + 4;
 
-    uint64_t aux = index_max & (B(PIECE_SIZE) - 1);
+    uint64_t aux = i_max & (B(PIECE_SIZE) - 1);
     if(aux)
-        index_max += B(PIECE_SIZE) - aux;
+        i_max += B(PIECE_SIZE) - aux;
 
-    printf("\nindex_max: %lu", index_max);
-    for(uint64_t i=begin * B(16) + 1; i<index_max; i += B(16))
+    printf("\nspan: %lu\tbegin: %lu\tend: %lu", span, begin, end);
+    printf("\ni_0: %lu\ti_max: %lu", begin * B(span) + 1, (end + 1) * B(span));
+    for(uint64_t i=begin; i<end; i++)
     {
-        printf("\ni: %lx", i);
+        printf("\ni: %lu", i);
+
+        uint64_t i_0 = i * B(span) + 1;
+
         union_num_t res[3];
-        split_span(res, size, i, 16, 0);
+        split_span(res, size, i_0, span, 0);
+        union_num_free(res[0]);
+        union_num_free(res[1]);
+        union_num_free(res[2]);
     }
 }
