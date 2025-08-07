@@ -196,7 +196,7 @@ void split_span_res_file_path_set(
     uint64_t depth
 )
 {
-    uint64_t i_max = i_0 + B(span);
+    uint64_t i_max = i_0 + B(span) - 1;
     snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
@@ -204,6 +204,7 @@ void split_span_res_delete(uint64_t size, uint64_t i_0, uint64_t span, uint64_t 
 {
     char file_path[100];
     split_span_res_file_path_set(file_path, size, i_0, span, depth);
+    tprintf("deleting %s", file_path);
     remove(file_path);
 }
 
@@ -337,7 +338,7 @@ void split_span(
     TIME_SETUP
     split_join(out, res_1, res_2);
     TIME_END(t1)
-    printf("\t\t%.1f", t1 / 1e9);
+    fprintf(stderr, "\t\t%.1f", t1 / 1e9);
 
     split_span_res_save(out, size, i_0, span, depth);
 }
@@ -348,18 +349,20 @@ void split_big_file_path_set(
     char file_path[100],
     uint64_t size,
     uint64_t i_0,
-    uint64_t depth,
-    uint64_t remainder
+    uint64_t remainder,
+    uint64_t depth
 )
 {
+    tprintf("i_0: %lu\tdepth: %lu\tremainder: %lu", i_0, depth, remainder)
     uint64_t i_max = i_0 + remainder - 1; // TODO remove -1
     snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
-void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t depth, uint64_t remainder)
+void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, depth, remainder);
+    split_big_file_path_set(file_path, size, i_0, remainder, depth);
+    tprintf("deleting: %s", file_path);
     remove(file_path);
 }
 
@@ -367,12 +370,16 @@ void split_big_res_save(
     union_num_t res[3],
     uint64_t size,
     uint64_t i_0,
-    uint64_t depth,
-    uint64_t remainder
+    uint64_t remainder,
+    uint64_t depth
 )
 {
+    tprintf("begin")
+    tprintf("i_0: %lu\tdepth: %lu\tremainder: %lu", i_0, depth, remainder)
+
     char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, depth, remainder);
+    split_big_file_path_set(file_path, size, i_0, remainder, depth);
+    tprintf("saving file: %s", file_path);
     FILE *fp = fopen(file_path, "w");
     assert(fp);
 
@@ -394,8 +401,8 @@ bool split_big_res_try_load(
     union_num_t out[3],
     uint64_t size,
     uint64_t i_0,
-    uint64_t depth,
-    uint64_t remainder
+    uint64_t remainder,
+    uint64_t depth
 )
 {
     if(stdc_count_ones(remainder) == 1)
@@ -405,7 +412,7 @@ bool split_big_res_try_load(
     }
 
     char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, depth, remainder);
+    split_big_file_path_set(file_path, size, i_0, remainder, depth);
     FILE *fp = file_try_open(file_path);
     if(fp == NULL)
         return false;
@@ -420,7 +427,7 @@ bool split_big_res_try_load(
     return true;
 }
 
-bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t depth, uint64_t remainder)
+bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     if(stdc_count_ones(remainder) == 1)
     {
@@ -429,7 +436,7 @@ bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t depth, uint64
     }
 
     char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, depth, remainder);
+    split_big_file_path_set(file_path, size, i_0, remainder, depth);
     FILE *fp = file_try_open(file_path);
     if(fp == NULL)
         return false;
@@ -444,12 +451,13 @@ void split_big(
     uint64_t size,
     uint64_t i_0,
     uint64_t remainder,
-    uint64_t depth
+    uint64_t depth,
+    uint64_t del
 )
 {
     tprintf("begin | %lu %lu %lu", i_0, remainder, depth)
 
-    if(split_big_res_try_load(out, size, i_0, depth, remainder))
+    if(split_big_res_try_load(out, size, i_0, remainder, depth))
         return;
 
     uint64_t span = stdc_bit_width(remainder) - 1;
@@ -469,7 +477,7 @@ void split_big(
     }
 
     union_num_t res_2[3];
-    split_big(res_2, size, i_0 + B(span), remainder - B(span), depth + 1);
+    split_big(res_2, size, i_0 + B(span), remainder - B(span), depth + 1, del);
 
     union_num_t res_1[3];
     assert(split_span_res_try_load(res_1, size, i_0, span, depth + 1));
@@ -478,9 +486,9 @@ void split_big(
     TIME_SETUP
     split_join(out, res_1, res_2);
     TIME_END(t1)
-    printf("\t\t%.1f", t1 / 1e9);
+    fprintf(stderr, "\t\t%.1f", t1 / 1e9);
 
-    split_big_res_save(out, size, i_0, depth, remainder);
+    split_big_res_save(out, size, i_0, remainder, depth);
 }
 
 
@@ -489,13 +497,12 @@ void split_big(
 flt_num_t pi_big(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
-
     uint64_t aux = index_max & (B(PIECE_SIZE) - 1);
     if(aux)
         index_max += B(PIECE_SIZE) - aux;
 
     union_num_t res[3];
-    split_big(res, size, 1, index_max, 0);
+    split_big(res, size, 1, index_max, 0, 0);
     union_num_free(res[0]);
 
     flt_num_t flt_q = union_num_unwrap_flt(res[1]);
