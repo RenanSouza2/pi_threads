@@ -1,1 +1,1 @@
-rm -rf numbers/* pieces/*
+rm -rf numbers_del/* pieces_del/*

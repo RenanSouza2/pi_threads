@@ -204,7 +204,6 @@ void split_span_res_delete(uint64_t size, uint64_t i_0, uint64_t span, uint64_t 
 {
     char file_path[100];
     split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    tprintf("deleting %s", file_path);
     remove(file_path);
 }
 
@@ -353,8 +352,7 @@ void split_big_file_path_set(
     uint64_t depth
 )
 {
-    tprintf("i_0: %lu\tdepth: %lu\tremainder: %lu", i_0, depth, remainder)
-    uint64_t i_max = i_0 + remainder - 1; // TODO remove -1
+    uint64_t i_max = i_0 + remainder - 1;
     snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
@@ -362,7 +360,6 @@ void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint6
 {
     char file_path[100];
     split_big_file_path_set(file_path, size, i_0, remainder, depth);
-    tprintf("deleting: %s", file_path);
     remove(file_path);
 }
 
@@ -374,12 +371,8 @@ void split_big_res_save(
     uint64_t depth
 )
 {
-    tprintf("begin")
-    tprintf("i_0: %lu\tdepth: %lu\tremainder: %lu", i_0, depth, remainder)
-
     char file_path[100];
     split_big_file_path_set(file_path, size, i_0, remainder, depth);
-    tprintf("saving file: %s", file_path);
     FILE *fp = fopen(file_path, "w");
     assert(fp);
 
@@ -458,7 +451,10 @@ void split_big(
     tprintf("begin | %lu %lu %lu", i_0, remainder, depth)
 
     if(split_big_res_try_load(out, size, i_0, remainder, depth))
+    {
+        tprintf("loading");
         return;
+    }
 
     uint64_t span = stdc_bit_width(remainder) - 1;
     if(stdc_count_ones(remainder) == 1)
@@ -503,6 +499,7 @@ flt_num_t pi_big(uint64_t size)
 
     union_num_t res[3];
     split_big(res, size, 1, index_max, 0, 0);
+    tprintf("solved");
     union_num_free(res[0]);
 
     flt_num_t flt_q = union_num_unwrap_flt(res[1]);
