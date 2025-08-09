@@ -21,6 +21,8 @@
 
 #define PIECE_SIZE 16
 
+#define CACHE "cache"
+
 bool file_validate(FILE *fp)
 {
     // couldnt jump to end
@@ -112,7 +114,7 @@ void sig_file_path_set(char file_path[100], uint64_t i_0, uint64_t span)
 {
     uint64_t i_max = i_0 + B(span) - 1;
     span = span - PIECE_SIZE;
-    snprintf(file_path, 100, "pieces/p_%015ld_%02ld_%015ld.txt", i_0, span, i_max);
+    snprintf(file_path, 100, CACHE "/pieces/p_%015ld_%02ld_%015ld.txt", i_0, span, i_max);
 }
 
 void sig_res_delete(uint64_t i_0, uint64_t span)
@@ -197,7 +199,7 @@ void split_span_res_file_path_set(
 )
 {
     uint64_t i_max = i_0 + B(span) - 1;
-    snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
+    snprintf(file_path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
 void split_span_res_delete(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
@@ -353,7 +355,7 @@ void split_big_file_path_set(
 )
 {
     uint64_t i_max = i_0 + remainder - 1;
-    snprintf(file_path, 100, "numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
+    snprintf(file_path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
 }
 
 void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)

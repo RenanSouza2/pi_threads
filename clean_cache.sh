@@ -1,1 +1,1 @@
-rm -rf numbers_del/* pieces_del/*
+rm -rf cache_del/numbers/* cache_del/pieces/*
