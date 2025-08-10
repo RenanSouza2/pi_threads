@@ -39,8 +39,8 @@ int main()
     uint64_t size = 165000000;
     // prepare(size, 20, 1950, 5035);
     // prepare(size, 25, 57, 157);
-    prepare(size, 26, 30, 78);
-    // prepare(size, 27, 4, 5);
+    // prepare(size, 26, 8, 9);
+    prepare(size, 27, 4, 5);
 
     printf("\n");
     return 0;
