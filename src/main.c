@@ -37,9 +37,9 @@ int main()
     // flt_num_free(flt_pi);
 
     // prepare(size, 20, 1950, 5035);
-    // prepare(size, 21, 1453, 1664);
-    // prepare(size, 22, 728, 822);
-    prepare(size, 23, 374, 419);
+    // prepare(size, 21, 2055, 2108);
+    prepare(size, 22, 1034, 1054);
+    // prepare(size, 23, 513, 527);
     // prepare(size, 25, 57, 157);
     // prepare(size, 26, 33, 78);
 
