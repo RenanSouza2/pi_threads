@@ -20,7 +20,7 @@
 
 
 #define PIECE_SIZE 16
-#define CACHE "cache_del"
+#define CACHE "cache"
 
 bool file_validate(FILE *fp)
 {

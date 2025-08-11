@@ -38,8 +38,8 @@ int main()
 
     // prepare(size, 20, 1950, 5035);
     // prepare(size, 21, 1453, 1664);
-    prepare(size, 22, 728, 822);
-    // prepare(size, 23, 288, 353);
+    // prepare(size, 22, 728, 822);
+    prepare(size, 23, 374, 419);
     // prepare(size, 25, 57, 157);
     // prepare(size, 26, 33, 78);
 
