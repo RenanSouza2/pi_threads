@@ -31,14 +31,14 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 165000000;
-    // flt_num_t flt_pi = pi_big(size);
-    // // printf("\n\n");flt_num_display_dec(flt_pi);
-    // flt_num_free(flt_pi);
+    uint64_t size = 50000;
+    flt_num_t flt_pi = pi_big(size);
+    // printf("\n\n");flt_num_display_dec(flt_pi);
+    flt_num_free(flt_pi);
 
     // prepare(size, 20, 1950, 5035);
     // prepare(size, 21, 1453, 1664);
-    prepare(size, 22, 728, 822);
+    // prepare(size, 22, 728, 822);
     // prepare(size, 23, 288, 353);
     // prepare(size, 25, 57, 157);
     // prepare(size, 26, 33, 78);

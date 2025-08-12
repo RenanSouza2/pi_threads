@@ -69,7 +69,76 @@ FILE* file_try_open(char file_path[100])
 
 
 
-void sig_split_join(
+void split_sig_file_path_set(char file_path[100], uint64_t i_0, uint64_t span)
+{
+    uint64_t i_max = i_0 + B(span) - 1;
+    span = span - PIECE_SIZE;
+    snprintf(file_path, 100, CACHE "/pieces/p_%015ld_%02ld_%015ld.txt", i_0, span, i_max);
+}
+
+void split_sig_res_delete(uint64_t i_0, uint64_t span)
+{
+    char file_path[100];
+    split_sig_file_path_set(file_path, i_0, span);
+    remove(file_path);
+}
+
+void split_sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
+{
+    char file_path[100];
+    split_sig_file_path_set(file_path, i_0, span);
+    FILE *fp = fopen(file_path, "w");
+    assert(fp);
+
+    for(uint64_t i=0; i<3; i++)
+    {
+        sig_num_file_write(fp, res[i]);
+        fprintf(fp, "\n");
+    }
+
+    fprintf(fp, " D0BBE");
+    fclose(fp);
+
+    split_sig_res_delete(i_0              , span - 1);
+    split_sig_res_delete(i_0 + B(span - 1), span - 1);
+}
+
+FILE* split_sig_res_try_open(uint64_t i_0, uint64_t span)
+{
+    char file_path[100];
+    split_sig_file_path_set(file_path, i_0, span);
+    return file_try_open(file_path);
+}
+
+bool split_sig_res_try_load(sig_num_t out[3], uint64_t i_0, uint64_t span)
+{
+    FILE *fp = split_sig_res_try_open(i_0, span);
+    if(fp == NULL)
+        return false;
+
+    for(uint64_t i=0; i<3; i++)
+    {
+        out[i] = sig_num_file_read(fp);
+        assert(fscanf(fp, "\n") == 0);
+    }
+
+    fclose(fp);
+    return true;
+}
+
+bool split_sig_res_is_stored(uint64_t i_0, uint64_t span)
+{
+    FILE *fp = split_sig_res_try_open(i_0, span);
+    if(fp)
+    {
+        fclose(fp);
+        return true;
+    }
+
+    return false;
+}
+
+void split_sig_join(
     sig_num_t out[3],
     sig_num_t res_1[3],
     sig_num_t res_2[3]
@@ -87,8 +156,19 @@ void sig_split_join(
     out[2] = out_2;
 }
 
+uint64_t split_sig_res_get_size(uint64_t i_0, uint64_t span)
+{
+    FILE *fp = split_sig_res_try_open(i_0, span);
+    
+    uint64_t value;
+    assert(fscanf(fp, " %lu", &value) == 1);
+    assert(fscanf(fp, " %lu", &value) == 1);
+    fclose(fp);
+    return value;
+}
+
 // out vector length 3, returns P, Q, R in that order
-void sig_split(sig_num_t out[3], uint64_t i_0, uint64_t span)
+void split_sig(sig_num_t out[3], uint64_t i_0, uint64_t span)
 {
     if(span == 0)
     {
@@ -104,75 +184,23 @@ void sig_split(sig_num_t out[3], uint64_t i_0, uint64_t span)
     }
 
     sig_num_t res_1[3], res_2[3];
-    sig_split(res_1, i_0              , span - 1);
-    sig_split(res_2, i_0 + B(span - 1), span - 1);
-    sig_split_join(out, res_1, res_2);
-}
-
-void sig_file_path_set(char file_path[100], uint64_t i_0, uint64_t span)
-{
-    uint64_t i_max = i_0 + B(span) - 1;
-    span = span - PIECE_SIZE;
-    snprintf(file_path, 100, CACHE "/pieces/p_%015ld_%02ld_%015ld.txt", i_0, span, i_max);
-}
-
-void sig_res_delete(uint64_t i_0, uint64_t span)
-{
-    char file_path[100];
-    sig_file_path_set(file_path, i_0, span);
-    remove(file_path);
-}
-
-void sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
-{
-    char file_path[100];
-    sig_file_path_set(file_path, i_0, span);
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
-
-    for(uint64_t i=0; i<3; i++)
-    {
-        sig_num_file_write(fp, res[i]);
-        fprintf(fp, "\n");
-    }
-
-    fprintf(fp, " D0BBE");
-    fclose(fp);
-
-    sig_res_delete(i_0              , span - 1);
-    sig_res_delete(i_0 + B(span - 1), span - 1);
-}
-
-bool sig_res_try_load(sig_num_t out[3], uint64_t i_0, uint64_t span)
-{
-    char file_path[100];
-    sig_file_path_set(file_path, i_0, span);
-    FILE *fp = file_try_open(file_path);
-    if(fp == NULL)
-        return false;
-
-    for(uint64_t i=0; i<3; i++)
-    {
-        out[i] = sig_num_file_read(fp);
-        assert(fscanf(fp, "\n") == 0);
-    }
-
-    fclose(fp);
-    return true;
+    split_sig(res_1, i_0              , span - 1);
+    split_sig(res_2, i_0 + B(span - 1), span - 1);
+    split_sig_join(out, res_1, res_2);
 }
 
 
 
 #define PIECE_SPAN 16
 
-void union_res_from_sig(union_num_t out[3], sig_num_t res[3], uint64_t size)
+void split_span_res_from_sig(union_num_t out[3], sig_num_t res[3], uint64_t size)
 {
     out[0] = union_num_wrap_sig(res[0], size);
     out[1] = union_num_wrap_sig(res[1], size);
     out[2] = union_num_wrap_sig(res[2], size);
 }
 
-bool sig_res_try_from_union(sig_num_t out[3], union_num_t res[3])
+bool split_sig_res_try_from_span(sig_num_t out[3], union_num_t res[3])
 {
     if(
         res[0].type == FLT ||
@@ -217,9 +245,9 @@ void split_span_res_save(
 )
 {
     sig_num_t sig_res[3];
-    if(sig_res_try_from_union(sig_res, res))
+    if(split_sig_res_try_from_span(sig_res, res))
     {
-        sig_res_save(sig_res, i_0, span);
+        split_sig_res_save(sig_res, i_0, span);
         return;
     }
 
@@ -250,9 +278,9 @@ bool split_span_res_try_load(
 )
 {
     sig_num_t sig_res[3];
-    if(sig_res_try_load(sig_res, i_0, span))
+    if(split_sig_res_try_load(sig_res, i_0, span))
     {
-        union_res_from_sig(out, sig_res, size);
+        split_span_res_from_sig(out, sig_res, size);
         return true;
     }
 
@@ -272,20 +300,19 @@ bool split_span_res_try_load(
     return true;
 }
 
-bool split_span_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
+FILE* split_span_res_try_open(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 {
     char file_path[100];
-
-    sig_file_path_set(file_path, i_0, span);
-    FILE *fp = file_try_open(file_path);
-    if(fp)
-    {
-        fclose(fp);
-        return true;
-    }
-
     split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    fp = file_try_open(file_path);
+    return file_try_open(file_path);
+}
+
+bool split_span_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
+{
+    if(split_sig_res_is_stored(i_0, span))
+        return true;
+
+    FILE *fp = split_span_res_try_open(size, i_0, span, depth);
     if(fp)
     {
         fclose(fp);
@@ -295,52 +322,160 @@ bool split_span_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span, uint64
     return false;
 }
 
-// out vector length 3, returns P, Q, R in that order
-void split_span(
-    union_num_t out[3],
+union_num_t split_span_res_load(
     uint64_t size,
     uint64_t i_0,
     uint64_t span,
-    uint64_t depth
+    uint64_t depth,
+    uint64_t index
 )
+{
+    FILE *fp = split_sig_res_try_open(i_0, span);
+    if(fp)
+    {
+        sig_num_t sig;
+        for(uint64_t i=0; i<index; i++)
+        {
+            sig = sig_num_file_read(fp);
+            assert(fscanf(fp, "\n") == 0);
+            sig_num_free(sig);
+        }
+        sig = sig_num_file_read(fp);
+        fclose(fp);
+        return union_num_wrap_sig(sig, size);
+    }
+
+    fp = split_span_res_try_open(size, i_0, span, depth);
+    assert(fp);
+
+    union_num_t u;
+    for(uint64_t i=0; i<index; i++)
+    {
+        u = union_num_file_read(fp);
+        assert(fscanf(fp, "\n") == 0);
+        union_num_free(u);
+    }
+    u = union_num_file_read(fp);
+    fclose(fp);
+    return u;
+}
+
+bool split_span_res_is_sig(uint64_t size, uint64_t i_0, uint64_t span)
+{
+    // size, i_0 , span - 1, depth + 1
+    if(!split_sig_res_is_stored(i_0, span - 1))
+        return false;
+
+    // size, i_0 + B(span - 1), span - 1, depth + 1
+    if(!split_sig_res_is_stored(i_0 + B(span - 1), span - 1))
+        return false;
+
+    uint64_t size_1 = split_sig_res_get_size(i_0, span - 1);
+    uint64_t size_2 = split_sig_res_get_size(i_0 + B(span - 1), span - 1);
+    return size_1 + size_2 < size;
+}
+
+FILE* split_sig_res_open_write(uint64_t i_0, uint64_t span)
+{
+    char file_path[100];
+    split_sig_file_path_set(file_path, i_0, span);
+    FILE *fp = fopen(file_path, "w");
+    assert(fp);
+    return fp;
+}
+
+FILE* split_span_res_open_write(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
+{
+    char file_path[100];
+    split_span_res_file_path_set(file_path, size, i_0, span, depth);
+    FILE *fp = fopen(file_path, "w");
+    assert(fp);
+    return fp;
+}
+
+void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
+{
+    if(split_span_res_is_sig(size, i_0, span))
+    {
+        FILE* fp = split_sig_res_open_write(i_0, span);
+        for(uint64_t i=0; i<2; i++)
+        {
+            union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, i);
+            union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, i);
+            sig_num_t sig = sig_num_mul(u_1.num.sig, u_2.num.sig);
+            sig_num_file_write(fp, sig);
+            fprintf(fp,"\n");
+        }
+
+        union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 0);
+        union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
+        sig_num_t sig_1 = sig_num_mul(u_1.num.sig, u_2.num.sig);
+
+        u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
+        u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
+        sig_num_t sig_2 = sig_num_mul(u_1.num.sig, u_2.num.sig);
+        
+        sig_1 = sig_num_add(sig_1, sig_2);
+        sig_num_file_write(fp, sig_1);
+        fprintf(fp,"\n DOBBE");
+        fclose(fp);
+        return;
+    }
+
+    FILE* fp = split_span_res_open_write(size, i_0, span, depth);
+    for(uint64_t i=0; i<2; i++)
+    {
+        union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, i);
+        union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, i);
+        union_num_t u = union_num_mul(u_1, u_2);
+        union_num_file_write(fp, u);
+        fprintf(fp,"\n");
+    }
+
+    union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 0);
+    union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
+    union_num_t u_r_1 = union_num_mul(u_1, u_2);
+
+    u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
+    u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
+    union_num_t u_r_2 = union_num_mul(u_1, u_2);
+    
+    u_r_1 = union_num_add(u_r_1, u_r_2);
+    union_num_file_write(fp, u_r_1);
+    fprintf(fp,"\n DOBBE");
+    fclose(fp);
+    return;
+}
+
+// out vector length 3, returns P, Q, R in that order
+void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 {
     assert(span >= PIECE_SPAN);
     tprintf("begin | %lu %lu %lu", i_0, span, depth);
 
-    if(split_span_res_try_load(out, size, i_0, span, depth))
+    if(split_span_res_is_stored(size, i_0, span, depth))
         return;
 
     if(span == PIECE_SPAN)
     {
         sig_num_t res[3];
-        sig_split(res, i_0, span);
-        sig_res_save(res, i_0, span);
-        union_res_from_sig(out, res, size);
+        split_sig(res, i_0, span);
+        split_sig_res_save(res, i_0, span);
+
+        sig_num_free(res[0]);
+        sig_num_free(res[1]);
+        sig_num_free(res[2]);
         return;
     }
 
-    if(!split_span_res_is_stored(size, i_0, span - 1, depth + 1))
-    {
-        union_num_t res[3];
-        split_span(res, size, i_0, span - 1, depth + 1);
-        union_num_free(res[0]);
-        union_num_free(res[1]);
-        union_num_free(res[2]);
-    }
+    split_span(size, i_0              , span - 1, depth + 1);
+    split_span(size, i_0 + B(span - 1), span - 1, depth + 1);
 
-    union_num_t res_2[3];
-    split_span(res_2, size, i_0 + B(span - 1), span - 1, depth + 1);
-
-    union_num_t res_1[3];
-    assert(split_span_res_try_load(res_1, size, i_0, span - 1, depth + 1));
-    
     tprintf("joining | %lu %lu %lu", i_0, span, depth);
     TIME_SETUP
-    split_join(out, res_1, res_2);
+    split_span_res_join(size, i_0, span, depth);
     TIME_END(t1)
     fprintf(stderr, "\t\t%.1f", t1 / 1e9);
-
-    split_span_res_save(out, size, i_0, span, depth);
 }
 
 
@@ -460,7 +595,7 @@ void split_big(
     uint64_t span = stdc_bit_width(remainder) - 1;
     if(stdc_count_ones(remainder) == 1)
     {
-        split_span(out, size, i_0, span, depth + 1);
+        split_span(size, i_0, span, depth + 1);
         return;
     }
 
