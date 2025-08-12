@@ -133,6 +133,7 @@ bool split_sig_res_try_load(sig_num_p out, uint64_t i_0, uint64_t span, uint64_t
     }
     *out = sig_num_file_read(fp);
     fclose(fp);
+    return true;
 }
 
 bool split_sig_res_is_stored(uint64_t i_0, uint64_t span)
@@ -215,29 +216,6 @@ FILE* split_big_res_try_open_read(uint64_t size, uint64_t i_0, uint64_t remainde
     char file_path[100];
     split_big_file_path_set(file_path, size, i_0, remainder, depth);
     return file_try_open_read(file_path);
-}
-
-union_num_t split_big_res_load(
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t remainder,
-    uint64_t depth,
-    uint64_t index
-)
-{
-    FILE *fp = split_big_res_try_open_read(size, i_0, remainder, depth);
-    assert(fp);
-
-    union_num_t u;
-    for(uint64_t i=0; i<index; i++)
-    {
-        u = union_num_file_read(fp);
-        assert(fscanf(fp, "\n") == 0);
-        union_num_free(u);
-    }
-    u = union_num_file_read(fp);
-    fclose(fp);
-    return u;
 }
 
 
@@ -470,6 +448,51 @@ FILE* split_big_res_open_write(uint64_t size, uint64_t i_0, uint64_t remainder, 
     return fp;
 }
 
+bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
+{
+    if(stdc_count_ones(remainder) == 1)
+    {
+        uint64_t span = stdc_bit_width(remainder) - 1;
+        return split_span_res_is_stored(size, i_0, span, depth);
+    }
+
+    FILE *fp = split_big_res_try_open_read(size, i_0, remainder, depth);
+    if(fp == NULL)
+        return false;
+
+    fclose(fp);
+    return true;
+}
+
+union_num_t split_big_res_load(
+    uint64_t size,
+    uint64_t i_0,
+    uint64_t remainder,
+    uint64_t depth,
+    uint64_t index
+)
+{
+    if(stdc_count_ones(remainder) == 1)
+    {
+        uint64_t span = stdc_bit_width(remainder) - 1;
+        return split_span_res_load(size, i_0, span, depth, index);
+    }
+
+    FILE *fp = split_big_res_try_open_read(size, i_0, remainder, depth);
+    assert(fp);
+
+    union_num_t u;
+    for(uint64_t i=0; i<index; i++)
+    {
+        u = union_num_file_read(fp);
+        assert(fscanf(fp, "\n") == 0);
+        union_num_free(u);
+    }
+    u = union_num_file_read(fp);
+    fclose(fp);
+    return u;
+}
+
 void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     uint64_t span_ = stdc_bit_width(remainder) - 1; // TODO RENAME 
@@ -485,11 +508,11 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
     }
 
     union_num_t u_1 = split_span_res_load(size, i_0, span_, depth + 1, 0);
-    union_num_t u_2 = split_big_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
+    union_num_t u_2 = split_big_res_load(size, i_0 + B(span_), span_, depth + 1, 2);
     union_num_t u_r_1 = union_num_mul(u_1, u_2);
 
-    u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
-    u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
+    u_1 = split_span_res_load(size, i_0, span_, depth + 1, 2);
+    u_2 = split_span_res_load(size, i_0 + B(span_), span_, depth + 1, 1);
     union_num_t u_r_2 = union_num_mul(u_1, u_2);
     
     u_r_1 = union_num_add(u_r_1, u_r_2);
@@ -497,66 +520,12 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
     fprintf(fp,"\n DOBBE");
     fclose(fp);
 
-    split_span_res_delete(size, i_0, span - 1, depth + 1);
-    split_span_res_delete(size, i_0 + B(span - 1), span - 1, depth + 1);
-}
-
-bool split_big_res_try_load(
-    union_num_t out[3],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t remainder,
-    uint64_t depth
-)
-{
-    if(stdc_count_ones(remainder) == 1)
-    {
-        uint64_t span = stdc_bit_width(remainder) - 1;
-        return split_span_res_try_load(out, size, i_0, span, depth);
-    }
-
-    char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, remainder, depth);
-    FILE *fp = file_try_open(file_path);
-    if(fp == NULL)
-        return false;
-
-    for(uint64_t i=0; i<3; i++)
-    {
-        out[i] = union_num_file_read(fp);
-        assert(fscanf(fp, "\n") == 0);
-    }
-        
-    fclose(fp);
-    return true;
-}
-
-bool split_big_res_is_stored(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
-{
-    if(stdc_count_ones(remainder) == 1)
-    {
-        uint64_t span = stdc_bit_width(remainder) - 1;
-        return split_span_res_is_stored(size, i_0, span, depth);
-    }
-
-    char file_path[100];
-    split_big_file_path_set(file_path, size, i_0, remainder, depth);
-    FILE *fp = file_try_open(file_path);
-    if(fp == NULL)
-        return false;
-
-    fclose(fp);
-    return true;
+    split_span_res_delete(size, i_0, span_, depth + 1);
+    split_span_res_delete(size, i_0 + B(span_), span_, depth + 1);
 }
 
 // out vector length 3, returns P, Q, R in that order
-void split_big(
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t remainder,
-    uint64_t depth,
-    uint64_t del
-)
+void split_big(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     tprintf("begin | %lu %lu %lu", i_0, remainder, depth)
 
@@ -569,14 +538,12 @@ void split_big(
     if(stdc_count_ones(remainder) == 1)
         return;
 
-    split_big(size, i_0 + B(span), remainder - B(span), depth + 1, del);
+    split_big(size, i_0 + B(span), remainder - B(span), depth + 1);
 
     TIME_SETUP
-    split_big_join(size, i_0, remainder, depth, del);
+    split_big_res_join(size, i_0, remainder, depth);
     TIME_END(t1)
     fprintf(stderr, "\t\t%.1f", t1 / 1e9);
-
-    split_big_res_save(out, size, i_0, remainder, depth);
 }
 
 
@@ -589,13 +556,14 @@ flt_num_t pi_big(uint64_t size)
     if(aux)
         index_max += B(PIECE_SIZE) - aux;
 
-    union_num_t res[3];
-    split_big(res, size, 1, index_max, 0, 0);
+    split_big(size, 1, index_max, 0);
     tprintf("solved");
-    union_num_free(res[0]);
 
-    flt_num_t flt_q = union_num_unwrap_flt(res[1]);
-    flt_num_t flt_r = union_num_unwrap_flt(res[2]);
+    union_num_t u_q = split_big_res_load(size, 1, index_max, 0, 1);
+    union_num_t u_r = split_big_res_load(size, 1, index_max, 0, 2);
+
+    flt_num_t flt_q = union_num_unwrap_flt(u_q);
+    flt_num_t flt_r = union_num_unwrap_flt(u_r);
     
     flt_num_t flt_pi = flt_r;
     flt_pi = flt_num_mul_sig(flt_pi, sig_num_wrap(6));
@@ -619,11 +587,6 @@ void prepare(uint64_t size, uint64_t span, uint64_t begin, uint64_t end)
         printf("\ni: %lu", i);
 
         uint64_t i_0 = i * B(span) + 1;
-
-        union_num_t res[3];
-        split_span(res, size, i_0, span, 0);
-        union_num_free(res[0]);
-        union_num_free(res[1]);
-        union_num_free(res[2]);
+        split_span(size, i_0, span, 0);
     }
 }
