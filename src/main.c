@@ -38,7 +38,7 @@ int main()
 
     // prepare(size, 20, 1950, 5035);
     // prepare(size, 21, 2055, 2108);
-    prepare(size, 22, 1034, 1054);
+    prepare(size, 22, 1220, 1258);
     // prepare(size, 23, 513, 527);
     // prepare(size, 25, 57, 157);
     // prepare(size, 26, 33, 78);
