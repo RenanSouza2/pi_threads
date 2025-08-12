@@ -57,7 +57,7 @@ bool file_validate_read(FILE *fp)
 FILE* file_try_open_read(char file_path[100])
 {
     FILE *fp = fopen(file_path, "r");
-    if(fp)
+    if(fp == NULL)
         return NULL;
 
     if(file_validate_read(fp))
