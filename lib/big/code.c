@@ -342,16 +342,16 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
             fprintf(fp,"\n");
         }
 
-        union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 0);
-        union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
-        sig_num_t sig_1 = sig_num_mul(u_1.num.sig, u_2.num.sig);
+        sig_num_t sig_1 = sig_res_load(i_0, span - 1, 0);
+        sig_num_t sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, 2);
+        sig_num_t sig_r_1 = sig_num_mul(sig_1, sig_2);
 
-        u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
-        u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
-        sig_num_t sig_2 = sig_num_mul(u_1.num.sig, u_2.num.sig);
+        sig_1 = sig_res_load(i_0, span - 1, 2);
+        sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, 1);
+        sig_num_t sig_r_2 = sig_num_mul(sig_1, sig_2);
         
-        sig_1 = sig_num_add(sig_1, sig_2);
-        sig_num_file_write(fp, sig_1);
+        sig_r_1 = sig_num_add(sig_r_1, sig_r_2);
+        sig_num_file_write(fp, sig_r_1);
         fprintf(fp,"\n D0BBE");
         fclose(fp);
 
