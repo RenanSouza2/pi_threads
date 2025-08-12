@@ -200,9 +200,10 @@ uint64_t sig_res_get_size(uint64_t i_0, uint64_t span)
 {
     FILE *fp = sig_res_try_open_read(i_0, span);
     
+    tprintf("%lu %lu", i_0, span);
     uint64_t value;
-    assert(fscanf(fp, " %lu", &value) == 1);
-    assert(fscanf(fp, " %lu", &value) == 1);
+    assert(fscanf(fp, " %lx", &value) == 1);
+    assert(fscanf(fp, " %lx", &value) == 1);
     fclose(fp);
     return value;
 }
@@ -339,6 +340,7 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
             sig_num_t sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, i);
             sig_num_t sig = sig_num_mul(sig_1, sig_2);
             sig_num_file_write(fp, sig);
+            sig_num_free(sig);
             fprintf(fp,"\n");
         }
 
@@ -352,6 +354,8 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
         
         sig_r_1 = sig_num_add(sig_r_1, sig_r_2);
         sig_num_file_write(fp, sig_r_1);
+        sig_num_free(sig_r_1);
+    
         fprintf(fp,"\n D0BBE");
         fclose(fp);
 
@@ -367,6 +371,7 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
         union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, i);
         union_num_t u = union_num_mul(u_1, u_2);
         union_num_file_write(fp, u);
+        union_num_free(u);
         fprintf(fp,"\n");
     }
 
@@ -380,6 +385,8 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
     
     u_r_1 = union_num_add(u_r_1, u_r_2);
     union_num_file_write(fp, u_r_1);
+    union_num_free(u_r_1);
+
     fprintf(fp,"\n D0BBE");
     fclose(fp);
 
