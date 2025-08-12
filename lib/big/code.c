@@ -115,6 +115,10 @@ void split_sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
     fprintf(fp, " D0BBE");
     fclose(fp);
 
+    sig_num_free(res[0]);
+    sig_num_free(res[1]);
+    sig_num_free(res[2]);
+
     split_sig_res_delete(i_0              , span - 1);
     split_sig_res_delete(i_0 + B(span - 1), span - 1);
 }
@@ -413,10 +417,6 @@ void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
         sig_num_t res[3];
         split_sig(res, i_0, span);
         split_sig_res_save(res, i_0, span);
-
-        sig_num_free(res[0]);
-        sig_num_free(res[1]);
-        sig_num_free(res[2]);
         return;
     }
 
