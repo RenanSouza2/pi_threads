@@ -22,7 +22,7 @@
 #define PIECE_SIZE 16
 #define CACHE "cache_del"
 
-bool file_validate(FILE *fp)
+bool file_validate_read(FILE *fp)
 {
     // couldnt jump to end
     if(fseek(fp, 0, SEEK_END))
@@ -54,17 +54,24 @@ bool file_validate(FILE *fp)
     return true;
 }
 
-FILE* file_try_open(char file_path[100])
+FILE* file_try_open_read(char file_path[100])
 {
     FILE *fp = fopen(file_path, "r");
-    if(fp == NULL)
+    if(fp)
         return NULL;
 
-    if(file_validate(fp))
+    if(file_validate_read(fp))
         return fp;
 
     fclose(fp);
     return NULL;
+}
+
+FILE* file_open_write(char file_path[100])
+{
+    FILE *fp = fopen(file_path, "w");
+    assert(fp)
+    return fp;
 }
 
 
@@ -83,19 +90,28 @@ void split_sig_res_delete(uint64_t i_0, uint64_t span)
     remove(file_path);
 }
 
-void split_sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
+FILE* split_sig_res_try_open_read(uint64_t i_0, uint64_t span)
 {
     char file_path[100];
     split_sig_file_path_set(file_path, i_0, span);
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
+    return file_try_open_read(file_path);
+}
 
+FILE* split_sig_res_open_write(uint64_t i_0, uint64_t span)
+{
+    char file_path[100];
+    split_sig_file_path_set(file_path, i_0, span);
+    return file_open_write(file_path);
+}
+
+void split_sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
+{
+    FILE *fp = split_sig_res_open_write(i_0, span);
     for(uint64_t i=0; i<3; i++)
     {
         sig_num_file_write(fp, res[i]);
         fprintf(fp, "\n");
     }
-
     fprintf(fp, " D0BBE");
     fclose(fp);
 
@@ -103,39 +119,41 @@ void split_sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
     split_sig_res_delete(i_0 + B(span - 1), span - 1);
 }
 
-FILE* split_sig_res_try_open(uint64_t i_0, uint64_t span)
+bool split_sig_res_try_load(sig_num_p out, uint64_t i_0, uint64_t span, uint64_t index)
 {
-    char file_path[100];
-    split_sig_file_path_set(file_path, i_0, span);
-    return file_try_open(file_path);
-}
-
-bool split_sig_res_try_load(sig_num_t out[3], uint64_t i_0, uint64_t span)
-{
-    FILE *fp = split_sig_res_try_open(i_0, span);
+    FILE *fp = split_sig_res_try_open_read(i_0, span);
     if(fp == NULL)
         return false;
 
-    for(uint64_t i=0; i<3; i++)
+    for(uint64_t i=0; i<index; i++)
     {
-        out[i] = sig_num_file_read(fp);
+        sig_num_t sig = sig_num_file_read(fp);
         assert(fscanf(fp, "\n") == 0);
+        sig_num_free(sig);
     }
+    *out = sig_num_file_read(fp);
+    fclose(fp);
+}
+
+bool split_sig_res_is_stored(uint64_t i_0, uint64_t span)
+{
+    FILE *fp = split_sig_res_try_open_read(i_0, span);
+    if(fp == NULL)
+        return false;
 
     fclose(fp);
     return true;
 }
 
-bool split_sig_res_is_stored(uint64_t i_0, uint64_t span)
+uint64_t split_sig_res_get_size(uint64_t i_0, uint64_t span)
 {
-    FILE *fp = split_sig_res_try_open(i_0, span);
-    if(fp)
-    {
-        fclose(fp);
-        return true;
-    }
-
-    return false;
+    FILE *fp = split_sig_res_try_open_read(i_0, span);
+    
+    uint64_t value;
+    assert(fscanf(fp, " %lu", &value) == 1);
+    assert(fscanf(fp, " %lu", &value) == 1);
+    fclose(fp);
+    return value;
 }
 
 void split_sig_join(
@@ -154,17 +172,6 @@ void split_sig_join(
     out[0] = out_0;
     out[1] = out_1;
     out[2] = out_2;
-}
-
-uint64_t split_sig_res_get_size(uint64_t i_0, uint64_t span)
-{
-    FILE *fp = split_sig_res_try_open(i_0, span);
-    
-    uint64_t value;
-    assert(fscanf(fp, " %lu", &value) == 1);
-    assert(fscanf(fp, " %lu", &value) == 1);
-    fclose(fp);
-    return value;
 }
 
 // out vector length 3, returns P, Q, R in that order
@@ -187,6 +194,50 @@ void split_sig(sig_num_t out[3], uint64_t i_0, uint64_t span)
     split_sig(res_1, i_0              , span - 1);
     split_sig(res_2, i_0 + B(span - 1), span - 1);
     split_sig_join(out, res_1, res_2);
+}
+
+
+
+void split_big_file_path_set(
+    char file_path[100],
+    uint64_t size,
+    uint64_t i_0,
+    uint64_t remainder,
+    uint64_t depth
+)
+{
+    uint64_t i_max = i_0 + remainder - 1;
+    snprintf(file_path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
+}
+
+FILE* split_big_res_try_open_read(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
+{
+    char file_path[100];
+    split_big_file_path_set(file_path, size, i_0, remainder, depth);
+    return file_try_open_read(file_path);
+}
+
+union_num_t split_big_res_load(
+    uint64_t size,
+    uint64_t i_0,
+    uint64_t remainder,
+    uint64_t depth,
+    uint64_t index
+)
+{
+    FILE *fp = split_big_res_try_open_read(size, i_0, remainder, depth);
+    assert(fp);
+
+    union_num_t u;
+    for(uint64_t i=0; i<index; i++)
+    {
+        u = union_num_file_read(fp);
+        assert(fscanf(fp, "\n") == 0);
+        union_num_free(u);
+    }
+    u = union_num_file_read(fp);
+    fclose(fp);
+    return u;
 }
 
 
@@ -225,8 +276,7 @@ void split_span_res_file_path_set(
     uint64_t depth
 )
 {
-    uint64_t i_max = i_0 + B(span) - 1;
-    snprintf(file_path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
+    split_big_file_path_set(file_path, size, i_0, B(span), depth);
 }
 
 void split_span_res_delete(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
@@ -236,75 +286,22 @@ void split_span_res_delete(uint64_t size, uint64_t i_0, uint64_t span, uint64_t 
     remove(file_path);
 }
 
-void split_span_res_save(
-    union_num_t res[3],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t span,
-    uint64_t depth
-)
+FILE* split_span_res_try_open_read(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 {
-    sig_num_t sig_res[3];
-    if(split_sig_res_try_from_span(sig_res, res))
-    {
-        split_sig_res_save(sig_res, i_0, span);
-        return;
-    }
+    FILE* fp = split_sig_res_try_open_read(i_0, span);
+    if(fp)
+        return fp;
 
     char file_path[100];
     split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
-
-    for(uint64_t i=0; i<3; i++)
-    {
-        union_num_file_write(fp, res[i]);
-        fprintf(fp, "\n");
-    }
-
-    fprintf(fp, " D0BBE");
-    fclose(fp);
-
-    split_span_res_delete(size, i_0              , span - 1, depth + 1);
-    split_span_res_delete(size, i_0 + B(span - 1), span - 1, depth + 1);
+    return file_try_open_read(file_path);
 }
 
-bool split_span_res_try_load(
-    union_num_t out[3],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t span,
-    uint64_t depth
-)
-{
-    sig_num_t sig_res[3];
-    if(split_sig_res_try_load(sig_res, i_0, span))
-    {
-        split_span_res_from_sig(out, sig_res, size);
-        return true;
-    }
-
-    char file_path[100];
-    split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    FILE *fp = file_try_open(file_path);
-    if(fp == NULL)
-        return false;
-
-    for(uint64_t i=0; i<3; i++)
-    {
-        out[i] = union_num_file_read(fp);
-        assert(fscanf(fp, "\n") == 0);
-    }
-        
-    fclose(fp);
-    return true;
-}
-
-FILE* split_span_res_try_open(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
+FILE* split_span_res_open_write(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 {
     char file_path[100];
     split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    return file_try_open(file_path);
+    return file_open_write(file_path);
 }
 
 bool split_span_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
@@ -312,7 +309,7 @@ bool split_span_res_is_stored(uint64_t size, uint64_t i_0, uint64_t span, uint64
     if(split_sig_res_is_stored(i_0, span))
         return true;
 
-    FILE *fp = split_span_res_try_open(size, i_0, span, depth);
+    FILE *fp = split_span_res_try_open_read(size, i_0, span, depth);
     if(fp)
     {
         fclose(fp);
@@ -330,22 +327,12 @@ union_num_t split_span_res_load(
     uint64_t index
 )
 {
-    FILE *fp = split_sig_res_try_open(i_0, span);
-    if(fp)
-    {
-        sig_num_t sig;
-        for(uint64_t i=0; i<index; i++)
-        {
-            sig = sig_num_file_read(fp);
-            assert(fscanf(fp, "\n") == 0);
-            sig_num_free(sig);
-        }
-        sig = sig_num_file_read(fp);
-        fclose(fp);
+    sig_num_t sig;
+    if(split_sig_res_try_load(&sig, i_0, span, index))
         return union_num_wrap_sig(sig, size);
-    }
 
-    fp = split_span_res_try_open(size, i_0, span, depth);
+    // TODO replace for split_big_res_load
+    FILE *fp = split_span_res_try_open_read(size, i_0, span, depth);
     assert(fp);
 
     union_num_t u;
@@ -375,50 +362,6 @@ bool split_span_res_is_sig(uint64_t size, uint64_t i_0, uint64_t span)
     return size_1 + size_2 < size;
 }
 
-FILE* split_sig_res_open_write(uint64_t i_0, uint64_t span)
-{
-    char file_path[100];
-    split_sig_file_path_set(file_path, i_0, span);
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
-    return fp;
-}
-
-FILE* split_span_res_open_write(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
-{
-    char file_path[100];
-    split_span_res_file_path_set(file_path, size, i_0, span, depth);
-    FILE *fp = fopen(file_path, "w");
-    assert(fp);
-    return fp;
-}
-
-void split_big_res_join()
-{
-    FILE* fp = split_span_res_open_write(size, i_0, span, depth);
-    for(uint64_t i=0; i<2; i++)
-    {
-        union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, i);
-        union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, i);
-        union_num_t u = union_num_mul(u_1, u_2);
-        union_num_file_write(fp, u);
-        fprintf(fp,"\n");
-    }
-
-    union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 0);
-    union_num_t u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
-    union_num_t u_r_1 = union_num_mul(u_1, u_2);
-
-    u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
-    u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
-    union_num_t u_r_2 = union_num_mul(u_1, u_2);
-    
-    u_r_1 = union_num_add(u_r_1, u_r_2);
-    union_num_file_write(fp, u_r_1);
-    fprintf(fp,"\n DOBBE");
-    fclose(fp);
-}
-
 void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 {
     if(split_span_res_is_sig(size, i_0, span))
@@ -445,6 +388,9 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
         sig_num_file_write(fp, sig_1);
         fprintf(fp,"\n DOBBE");
         fclose(fp);
+
+        split_sig_res_delete(i_0, span - 1);
+        split_sig_res_delete(i_0 + B(span - 1), span - 1);
         return;
     }
 
@@ -470,6 +416,9 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
     union_num_file_write(fp, u_r_1);
     fprintf(fp,"\n DOBBE");
     fclose(fp);
+
+    split_span_res_delete(size, i_0, span - 1, depth + 1);
+    split_span_res_delete(size, i_0 + B(span - 1), span - 1, depth + 1);
 }
 
 // out vector length 3, returns P, Q, R in that order
@@ -505,18 +454,6 @@ void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
 
 
 
-void split_big_file_path_set(
-    char file_path[100],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t remainder,
-    uint64_t depth
-)
-{
-    uint64_t i_max = i_0 + remainder - 1;
-    snprintf(file_path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
-}
-
 void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     char file_path[100];
@@ -524,31 +461,44 @@ void split_big_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint6
     remove(file_path);
 }
 
-void split_big_res_save(
-    union_num_t res[3],
-    uint64_t size,
-    uint64_t i_0,
-    uint64_t remainder,
-    uint64_t depth
-)
+FILE* split_big_res_open_write(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     char file_path[100];
     split_big_file_path_set(file_path, size, i_0, remainder, depth);
     FILE *fp = fopen(file_path, "w");
     assert(fp);
+    return fp;
+}
 
-    for(uint64_t i=0; i<3; i++)
+void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
+{
+    uint64_t span_ = stdc_bit_width(remainder) - 1; // TODO RENAME 
+
+    FILE* fp = split_big_res_open_write(size, i_0, remainder, depth);
+    for(uint64_t i=0; i<2; i++)
     {
-        union_num_file_write(fp, res[i]);
-        fprintf(fp, "\n");
+        union_num_t u_1 = split_span_res_load(size, i_0, span_, depth + 1, i);
+        union_num_t u_2 = split_big_res_load(size, i_0 + B(span_), remainder - B(span_), depth + 1, i);
+        union_num_t u = union_num_mul(u_1, u_2);
+        union_num_file_write(fp, u);
+        fprintf(fp,"\n");
     }
 
-    fprintf(fp, " D0BBE");
+    union_num_t u_1 = split_span_res_load(size, i_0, span_, depth + 1, 0);
+    union_num_t u_2 = split_big_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 2);
+    union_num_t u_r_1 = union_num_mul(u_1, u_2);
+
+    u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, 2);
+    u_2 = split_span_res_load(size, i_0 + B(span - 1), span - 1, depth + 1, 1);
+    union_num_t u_r_2 = union_num_mul(u_1, u_2);
+    
+    u_r_1 = union_num_add(u_r_1, u_r_2);
+    union_num_file_write(fp, u_r_1);
+    fprintf(fp,"\n DOBBE");
     fclose(fp);
 
-    uint64_t span = stdc_bit_width(remainder) - 1;
-    split_span_res_delete(size, i_0, span, depth + 1);
-    split_big_res_delete(size, i_0 + B(span), remainder - B(span), depth + 1);
+    split_span_res_delete(size, i_0, span - 1, depth + 1);
+    split_span_res_delete(size, i_0 + B(span - 1), span - 1, depth + 1);
 }
 
 bool split_big_res_try_load(
