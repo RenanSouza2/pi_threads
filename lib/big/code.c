@@ -352,7 +352,7 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
         
         sig_1 = sig_num_add(sig_1, sig_2);
         sig_num_file_write(fp, sig_1);
-        fprintf(fp,"\n DOBBE");
+        fprintf(fp,"\n D0BBE");
         fclose(fp);
 
         sig_res_delete(i_0, span - 1);
@@ -380,7 +380,7 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
     
     u_r_1 = union_num_add(u_r_1, u_r_2);
     union_num_file_write(fp, u_r_1);
-    fprintf(fp,"\n DOBBE");
+    fprintf(fp,"\n D0BBE");
     fclose(fp);
 
     split_span_res_delete(size, i_0, span - 1, depth + 1);
@@ -473,7 +473,7 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
     
     u_r_1 = union_num_add(u_r_1, u_r_2);
     union_num_file_write(fp, u_r_1);
-    fprintf(fp,"\n DOBBE");
+    fprintf(fp,"\n D0BBE");
     fclose(fp);
 
     split_span_res_delete(size, i_0, span, depth + 1);
