@@ -199,8 +199,7 @@ bool sig_res_is_stored(uint64_t i_0, uint64_t span)
 uint64_t sig_res_get_size(uint64_t i_0, uint64_t span)
 {
     FILE *fp = sig_res_try_open_read(i_0, span);
-    
-    tprintf("%lu %lu", i_0, span);
+
     uint64_t value;
     assert(fscanf(fp, " %lx", &value) == 1);
     assert(fscanf(fp, " %lx", &value) == 1);
@@ -220,6 +219,13 @@ void union_res_path_set(
 {
     uint64_t i_max = i_0 + remainder - 1;
     snprintf(path, 100, CACHE "/numbers/u_%015ld_%015ld_%02ld_%015ld.txt", size, i_0, depth, i_max);
+}
+
+void union_res_delete(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
+{
+    char path[100];
+    union_res_path_set(path, size, i_0, remainder, depth);
+    remove(path);
 }
 
 FILE* union_res_try_open_read(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
@@ -447,7 +453,7 @@ bool split_big_res_is_stored(
     uint64_t depth
 )
 {
-    if(stdc_count_ones(remainder))
+    if(stdc_count_ones(remainder) == 1)
     {
         uint64_t span = stdc_bit_width(remainder) - 1;
         return split_span_res_is_stored(size, i_0, span, depth);
@@ -458,24 +464,24 @@ bool split_big_res_is_stored(
 
 void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
-    uint64_t span = stdc_bit_width(remainder) - 1; // TODO RENAME 
+    uint64_t span = stdc_bit_width(remainder) - 1;
 
     FILE* fp = union_res_open_write(size, i_0, remainder, depth);
     for(uint64_t i=0; i<2; i++)
     {
-        union_num_t u_1 = split_span_res_load(size, i_0, span - 1, depth + 1, i);
+        union_num_t u_1 = split_span_res_load(size, i_0, span, depth + 1, i);
         union_num_t u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, i);
         union_num_t u = union_num_mul(u_1, u_2);
         union_num_file_write(fp, u);
         fprintf(fp,"\n");
     }
-
+    
     union_num_t u_1 = split_span_res_load(size, i_0, span, depth + 1, 0);
-    union_num_t u_2 = split_big_res_load(size, i_0 + B(span), span, depth + 1, 2);
+    union_num_t u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, 2);
     union_num_t u_r_1 = union_num_mul(u_1, u_2);
 
     u_1 = split_span_res_load(size, i_0, span, depth + 1, 2);
-    u_2 = split_span_res_load(size, i_0 + B(span), span, depth + 1, 1);
+    u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, 1);
     union_num_t u_r_2 = union_num_mul(u_1, u_2);
     
     u_r_1 = union_num_add(u_r_1, u_r_2);
@@ -484,7 +490,7 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
     fclose(fp);
 
     split_span_res_delete(size, i_0, span, depth + 1);
-    split_span_res_delete(size, i_0 + B(span), span, depth + 1);
+    union_res_delete(size, i_0 + B(span), remainder - B(span), depth + 1);
 }
 
 // out vector length 3, returns P, Q, R in that order
@@ -503,6 +509,7 @@ void split_big(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 
     split_big(size, i_0 + B(span), remainder - B(span), depth + 1);
 
+    tprintf("joining | %lu %lu %lu", i_0, span, depth);
     TIME_SETUP
     split_big_res_join(size, i_0, remainder, depth);
     TIME_END(t1)
