@@ -475,7 +475,9 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
         union_num_t u_1 = split_span_res_load(size, i_0, span, depth + 1, i);
         union_num_t u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, i);
         union_num_t u = union_num_mul(u_1, u_2);
+
         union_num_file_write(fp, u);
+        union_num_free(u);
         fprintf(fp,"\n");
     }
 
@@ -489,6 +491,8 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
 
     u_r_1 = union_num_add(u_r_1, u_r_2);
     union_num_file_write(fp, u_r_1);
+    union_num_free(u_r_1);
+
     fprintf(fp,"\n D0BBE");
     fclose(fp);
 
