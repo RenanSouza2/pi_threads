@@ -327,8 +327,7 @@ bool split_span_res_is_sig(uint64_t size, uint64_t i_0, uint64_t span)
         return false;
 
     uint64_t size_1 = sig_res_get_size(i_0, span - 1);
-    uint64_t size_2 = sig_res_get_size(i_0 + B(span - 1), span - 1);
-    return size_1 + size_2 < size;
+    return size_1 < size;
 }
 
 
@@ -342,48 +341,25 @@ void split_span_res_join(uint64_t size, uint64_t i_0, uint64_t span, uint64_t de
         FILE* fp = sig_res_open_write(i_0, span);
         for(uint64_t i=0; i<2; i++)
         {
-            tprintf("a %lu", i);
             sig_num_t sig_1 = sig_res_load(i_0, span - 1, i);
-            tprintf("b %lu", i);
             sig_num_t sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, i);
-            tprintf("c %lu | waiting input", i);
-            getchar();
-            tprintf("got input");
             sig_num_t sig = sig_num_mul(sig_1, sig_2);
-            tprintf("d %lu", i);
             sig_num_file_write(fp, sig);
-            tprintf("e %lu", i);
             sig_num_free(sig);
-            tprintf("f %lu", i);
             fprintf(fp,"\n");
-            tprintf("g %lu", i);
         }
-        
-        tprintf("h");
+
         sig_num_t sig_1 = sig_res_load(i_0, span - 1, 0);
-        tprintf("i");
         sig_num_t sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, 2);
-        tprintf("j | waiting input");
-        getchar();
-        tprintf("got input");
         sig_num_t sig_r_1 = sig_num_mul(sig_1, sig_2);
-        
-        tprintf("k");
+
         sig_1 = sig_res_load(i_0, span - 1, 2);
-        tprintf("l");
         sig_2 = sig_res_load(i_0 + B(span - 1), span - 1, 1);
-        tprintf("m | waiting input");
-        getchar();
-        tprintf("got input");
         sig_num_t sig_r_2 = sig_num_mul(sig_1, sig_2);
-        
-        tprintf("n");
+
         sig_r_1 = sig_num_add(sig_r_1, sig_r_2);
-        tprintf("o");
         sig_num_file_write(fp, sig_r_1);
-        tprintf("p");
         sig_num_free(sig_r_1);
-        tprintf("q");
         
         fprintf(fp,"\n D0BBE");
         fclose(fp);
