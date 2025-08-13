@@ -412,7 +412,10 @@ void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
     if(span == PIECE_SPAN)
     {
         sig_num_t res[3];
+        TIME_SETUP
         split_sig(res, i_0, span);
+        TIME_END(t1)
+        fprintf(stderr, "\t\t%.1f", t1 / 1e9);
         sig_res_save(res, i_0, span);
         return;
     }
@@ -464,9 +467,9 @@ bool split_big_res_is_stored(
 
 void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
-    uint64_t span = stdc_bit_width(remainder) - 1;
-
     FILE* fp = union_res_open_write(size, i_0, remainder, depth);
+    
+    uint64_t span = stdc_bit_width(remainder) - 1;
     for(uint64_t i=0; i<2; i++)
     {
         union_num_t u_1 = split_span_res_load(size, i_0, span, depth + 1, i);
@@ -475,7 +478,7 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
         union_num_file_write(fp, u);
         fprintf(fp,"\n");
     }
-    
+
     union_num_t u_1 = split_span_res_load(size, i_0, span, depth + 1, 0);
     union_num_t u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, 2);
     union_num_t u_r_1 = union_num_mul(u_1, u_2);
@@ -483,7 +486,7 @@ void split_big_res_join(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_
     u_1 = split_span_res_load(size, i_0, span, depth + 1, 2);
     u_2 = split_big_res_load(size, i_0 + B(span), remainder - B(span), depth + 1, 1);
     union_num_t u_r_2 = union_num_mul(u_1, u_2);
-    
+
     u_r_1 = union_num_add(u_r_1, u_r_2);
     union_num_file_write(fp, u_r_1);
     fprintf(fp,"\n D0BBE");
@@ -502,11 +505,13 @@ void split_big(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
         return;
 
     uint64_t span = stdc_bit_width(remainder) - 1;
-    split_span(size, i_0, span, depth + 1);
-
     if(stdc_count_ones(remainder) == 1)
+    {
+        split_span(size, i_0, span, depth);
         return;
+    }
 
+    split_span(size, i_0, span, depth + 1);
     split_big(size, i_0 + B(span), remainder - B(span), depth + 1);
 
     tprintf("joining | %lu %lu %lu", i_0, span, depth);
@@ -523,8 +528,7 @@ flt_num_t pi_big(uint64_t size)
 {
     uint64_t index_max = 32 * size + 4;
     uint64_t aux = index_max & (B(PIECE_SIZE) - 1);
-    if(aux)
-        index_max += B(PIECE_SIZE) - aux;
+    if(aux) index_max += B(PIECE_SIZE) - aux;
 
     split_big(size, 1, index_max, 0);
     tprintf("solved");
