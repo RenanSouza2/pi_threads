@@ -31,7 +31,7 @@ int main()
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 200000;
+    uint64_t size = 10000000;
     flt_num_t flt_pi = pi_big(size);
     // printf("\n\n");flt_num_display_dec(flt_pi);
     flt_num_free(flt_pi);
@@ -43,6 +43,7 @@ int main()
     // prepare(size, 25, 57, 157);
     // prepare(size, 26, 33, 78);
     // prepare(size, 27, 34, 35);
+    // prepare(size, 28, 18, 19);
 
     printf("\n");
     return 0;

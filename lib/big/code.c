@@ -162,7 +162,7 @@ void sig_res_save(sig_num_t res[3], uint64_t i_0, uint64_t span)
     sig_num_free(res[2]);
 }
 
-bool sig_res_try_load(sig_num_p out, uint64_t i_0, uint64_t span, uint64_t index) // TODO
+bool sig_res_try_load(sig_num_p out, uint64_t i_0, uint64_t span, uint64_t index)
 {
     FILE *fp = sig_res_try_open_read(i_0, span);
     if(fp == NULL)
@@ -179,7 +179,7 @@ bool sig_res_try_load(sig_num_p out, uint64_t i_0, uint64_t span, uint64_t index
     return true;
 }
 
-sig_num_t sig_res_load(uint64_t i_0, uint64_t span, uint64_t index) // TODO
+sig_num_t sig_res_load(uint64_t i_0, uint64_t span, uint64_t index)
 {
     sig_num_t res;
     assert(sig_res_try_load(&res, i_0, span, index));
