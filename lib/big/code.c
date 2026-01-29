@@ -414,7 +414,7 @@ void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
         TIME_SETUP
         split_sig(res, i_0, span);
         TIME_END(t1)
-        fprintf(stderr, "\t\t%.1f", t1 / 1e9);
+        fprintf(stderr, "\t\t%.1f", (double)t1 / 1e9);
         sig_res_save(res, i_0, span);
         return;
     }
@@ -426,7 +426,7 @@ void split_span(uint64_t size, uint64_t i_0, uint64_t span, uint64_t depth)
     TIME_SETUP
     split_span_res_join(size, i_0, span, depth);
     TIME_END(t1)
-    fprintf(stderr, "\t\t%.1f", t1 / 1e9);
+    fprintf(stderr, "\t\t%.1f", (double)t1 / 1e9);
 }
 
 
@@ -521,7 +521,7 @@ void split_big(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
     TIME_SETUP
     split_big_res_join(size, i_0, remainder, depth);
     TIME_END(t1)
-    fprintf(stderr, "\t\t%.1f", t1 / 1e9);
+    fprintf(stderr, "\t\t%.1f", (double)t1 / 1e9);
 }
 
 
