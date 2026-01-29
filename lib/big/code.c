@@ -20,9 +20,15 @@
 
 
 #define PIECE_SIZE 16
+<<<<<<< HEAD
 #define CACHE "cache_del"
 
 bool file_validate_read(FILE *fp)
+=======
+#define CACHE "cache"
+
+bool file_validate(FILE *fp)
+>>>>>>> main
 {
     // couldnt jump to end
     if(fseek(fp, 0, SEEK_END))
@@ -504,13 +510,21 @@ void split_big(uint64_t size, uint64_t i_0, uint64_t remainder, uint64_t depth)
 {
     tprintf("begin | %lu %lu %lu", i_0, remainder, depth)
 
+<<<<<<< HEAD
     if(split_big_res_is_stored(size, i_0, remainder, depth))
+=======
+    if(split_big_res_try_load(out, size, i_0, remainder, depth))
+>>>>>>> main
         return;
 
     uint64_t span = stdc_bit_width(remainder) - 1;
     if(stdc_count_ones(remainder) == 1)
     {
+<<<<<<< HEAD
         split_span(size, i_0, span, depth);
+=======
+        split_span(out, size, i_0, span, depth);
+>>>>>>> main
         return;
     }
 
