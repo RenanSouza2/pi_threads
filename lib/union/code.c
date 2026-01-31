@@ -150,14 +150,19 @@ void union_num_file_write(FILE *fp, union_num_t u)
     switch (u.type)
     {
         case SIG:
-        sig_num_file_write(fp, u.num.sig);
+        {
+            sig_num_file_write(fp, u.num.sig);
+        }
         break;
 
         case FLT:
-        flt_num_file_write(fp, u.num.flt);
+        {
+            flt_num_file_write(fp, u.num.flt);
+        }
         break;
+    
+        default: exit(EXIT_FAILURE);
     }
-    exit(EXIT_FAILURE);
 }
 
 union_num_t union_num_file_read(FILE *fp)
