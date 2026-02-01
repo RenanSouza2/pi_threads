@@ -50,7 +50,7 @@ void union_num_display_full(char tag[], union_num_t u)
 
         case FLT:
         {
-            printf("FLT | exponent: %ld | ", u.num.flt.exponent);
+            printf("FLT | exponent: " D64P() " | ", u.num.flt.exponent);
             num_display_opts(u.num.flt.sig.num, NULL, true, true);
             return;
         }
@@ -146,7 +146,7 @@ void union_num_free(union_num_t u)
 
 void union_num_file_write(FILE *fp, union_num_t u)
 {
-    fprintf(fp, " %lx %lx", u.type, u.size);
+    fprintf(fp, " " U64PX " " U64PX "", u.type, u.size);
     switch (u.type)
     {
         case SIG:
@@ -168,7 +168,7 @@ void union_num_file_write(FILE *fp, union_num_t u)
 union_num_t union_num_file_read(FILE *fp)
 {
     uint64_t type, size;
-    assert(fscanf(fp, "%lx %lx", &type, &size) == 2);
+    assert(fscanf(fp, "" U64PX " " U64PX "", &type, &size) == 2);
     switch (type)
     {
         case SIG:
