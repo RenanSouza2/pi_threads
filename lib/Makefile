@@ -1,9 +1,9 @@
 DIRS := $(wildcard */.)
 
-CLU_FILE = ../mods/clu/bin/bin.o
+LIB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))lib.o)
+DGB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))debug.o)
+CLU_FILE = ../mods/clu/bin/clu.o
 NUM_FILE = ../mods/number/lib/lib.o
-LIB_FILES = $(foreach DIR,$(DIRS) $(NUM_FILE),$(dir $(DIR))lib.o)
-DGB_FILES = $(foreach DIR,$(DIRS) $(NUM_FILE),$(dir $(DIR))debug.o)
 
 DIR = lib$(word 2,$(subst lib, ,$(CURDIR)))
 
@@ -11,22 +11,22 @@ DIR = lib$(word 2,$(subst lib, ,$(CURDIR)))
 
 build: lib.o
 
-dbg: debug.o $(CLU_FILE)
+dbg: debug.o
 
 
 
-lib.o: $(LIB_FILES)
-	echo " linking num object $(DIR)"
+lib.o: $(LIB_FILES) $(NUM_FILE)
+	echo " linking pi object $(DIR)"
 	gcc -r -o $@ $^ -flto
 
-debug.o: $(DGB_FILES)
-	echo " linking num debug $(DIR)"
+debug.o: $(DGB_FILES) $(NUM_FILE) $(CLU_FILE)
+	echo " linking pi debug $(DIR)"
 	gcc -r -o $@ $^ -fsanitize=address,undefined,leak
 
 
 
-.PHONY: $(LIB_FILES) $(CLU_FILE)
-$(LIB_FILES) $(CLU_FILE):
+.PHONY: $(LIB_FILES) $(NUM_FILE) $(CLU_FILE)
+$(LIB_FILES) $(NUM_FILE) $(CLU_FILE):
 	$(MAKE) --directory=$(dir $@)
 
 .PHONY: $(DGB_FILES)
@@ -44,8 +44,8 @@ _clean:
 	for DIR in $(DIRS) ; do \
 		( $(MAKE) _clean --directory=$$DIR ) || exit $$? ; \
 	done
-	$(MAKE) clean --directory=$(dir $(CLU_FILE))
-	$(MAKE) clean --directory=$(dir $(NUM_FILE))
+	$(MAKE) clean --directory $(dir ${CLU_FILE}) 
+	$(MAKE) clean --directory $(dir ${NUM_FILE}) 
 
 
 
