@@ -136,15 +136,18 @@ bool sig_res_is_stored(uint64_t i_0, uint64_t span)
     return true;
 }
 
+// Get the size of the first number
 uint64_t sig_res_get_size(uint64_t i_0, uint64_t span)
 {
     FILE *fp = sig_res_try_open_read(i_0, span);
+    assert(fp);
 
-    uint64_t value;
-    assert(fscanf(fp, " " U64PX "", &value) == 1);
-    assert(fscanf(fp, " " U64PX "", &value) == 1);
+    file_read_move_to_index(fp, 0);
+    file_read_uint64(fp);
+    uint64_t size = file_read_uint64(fp);
     fclose(fp);
-    return value;
+
+    return size;
 }
 
 
