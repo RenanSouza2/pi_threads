@@ -7,7 +7,7 @@ include $(PRJ_DIR)/makefiles/vars.mk
 DIRS := $(wildcard */.)
 
 LIB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))lib.o)
-DGB_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))debug.o)
+DBG_FILES = $(foreach DIR,$(DIRS),$(dir $(DIR))debug.o)
 
 
 
@@ -25,11 +25,11 @@ $(LIB_FILE): $(LIB_FILES)
 	echo " linking pi object $(DIR)"
 	gcc -r $(FLAGS) $(FLAGS_PRD) -o $@ $^ -nostdlib
 
-$(DBG_FULL_FILE): $(DGB_FILE) $(NUM_DBG_FILE)  $(CLU_FILE)
+$(DBG_FULL_FILE): $(DBG_FILE) $(NUM_DBG_FILE)  $(CLU_FILE)
 	echo " linking pi full debug $(DIR)"
 	gcc -r $(FLAGS) $(FLAGS_DBG)  -o $@ $^ -nostdlib
 
-$(DGB_FILE): $(DGB_FILES)
+$(DBG_FILE): $(DBG_FILES)
 	echo " linking pi debug $(DIR)"
 	gcc -r $(FLAGS) $(FLAGS_DBG)  -o $@ $^ -nostdlib
 
@@ -39,8 +39,8 @@ $(DGB_FILE): $(DGB_FILES)
 $(LIB_FILES) $(NUM_FILE) $(CLU_FILE):
 	$(MAKE) --directory=$(dir $@)
 
-.PHONY: $(DGB_FILES) $(NUM_DBG_FILE)
-$(DGB_FILES) $(NUM_DBG_FILE):
+.PHONY: $(DBG_FILES) $(NUM_DBG_FILE)
+$(DBG_FILES) $(NUM_DBG_FILE):
 	$(MAKE) dbg --directory=$(dir $@)
 
 
