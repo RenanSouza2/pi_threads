@@ -5,7 +5,7 @@ build b:
 	$(MAKE) build --directory=$(SRC) -s
 
 dbg d:
-	$(MAKE) dbg --directory=$(SRC) -s
+	$(MAKE) dbg --directory=$(SRC)
 
 clean c:
 	$(MAKE) clean --directory=$(SRC) -s

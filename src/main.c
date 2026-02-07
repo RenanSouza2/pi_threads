@@ -12,7 +12,7 @@
 
 
 
-void time_1()
+void time_1(void)
 {
     for(uint64_t i=1000; i <= 65000; i+=1000)
     {
@@ -26,11 +26,11 @@ void time_1()
 }
 
 // int main(int argc, char** argv)
-int main()
+int main(void)
 {
     setbuf(stdout, NULL);
 
-    uint64_t size = 1000000;
+    uint64_t size = 100000;
     flt_num_t flt_pi = pi_big(size);
     printf("\n\n");flt_num_display_dec(flt_pi);
     flt_num_free(flt_pi);
