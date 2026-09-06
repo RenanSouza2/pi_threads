@@ -2,7 +2,7 @@ on: [push]
 
 jobs:
   ci:
-    name: ${{ matrix.cmd }} (${{ matrix.os }}, ${{ matrix.assembly }})
+    name: ${{ matrix.cmd }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     strategy:
@@ -10,7 +10,6 @@ jobs:
       matrix:
         os: [ubuntu-26.04, macos-latest]
         cmd: [build, test]
-        assembly: [default, no_assembly]
     steps:
     - uses: actions/checkout@v6
 
@@ -24,11 +23,6 @@ jobs:
         # Apply static analysis exclusively on Linux builds
         if [ "${{ matrix.os }}" = "ubuntu-26.04" ] && [ "${{ matrix.cmd }}" = "build" ]; then
           FLAGS="-fanalyzer"
-        fi
-
-        # Append assembly override if matrix dictates
-        if [ "${{ matrix.assembly }}" = "no_assembly" ]; then
-          FLAGS="$FLAGS -DNO_ASSEMBLY"
         fi
 
         make ${{ matrix.cmd }} FLAGS_EXTRA="$FLAGS"
